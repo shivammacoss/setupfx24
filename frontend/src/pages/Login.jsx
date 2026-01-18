@@ -57,24 +57,36 @@ const Login = () => {
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-l from-orange-500/20 via-purple-500/20 to-transparent rounded-full blur-3xl" />
       
       {/* Modal */}
-      <div className="relative bg-dark-700 rounded-2xl p-8 w-full max-w-md border border-gray-800">
+      <div className="relative bg-dark-700 rounded-2xl p-8 w-full max-w-md border border-gray-800 shadow-2xl">
         {/* Close button */}
-        <button className="absolute top-4 right-4 w-8 h-8 bg-dark-600 rounded-full flex items-center justify-center hover:bg-dark-500 transition-colors">
+        <button 
+          onClick={() => window.location.href = 'https://setupfx24.com'}
+          className="absolute top-4 right-4 w-8 h-8 bg-dark-600 rounded-full flex items-center justify-center hover:bg-dark-500 transition-colors"
+        >
           <X size={16} className="text-gray-400" />
         </button>
 
+        {/* Logo */}
+        <div className="flex justify-center mb-6">
+          <img 
+            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/setupFX24-logo-1766736768413.png?width=8000&height=8000&resize=contain" 
+            alt="SetupFX24 Logo" 
+            className="h-12 w-auto object-contain"
+          />
+        </div>
+
         {/* Tabs */}
-        <div className="flex bg-dark-600 rounded-full p-1 w-fit mb-8">
+        <div className="flex bg-dark-600 rounded-full p-1 w-full mb-6">
           <Link
             to="/user/signup"
-            className="px-6 py-2 rounded-full text-sm font-medium text-gray-400 hover:text-white transition-colors"
+            className="flex-1 px-6 py-2.5 rounded-full text-sm font-medium text-gray-400 hover:text-white transition-colors text-center"
           >
             Sign up
           </Link>
           <button
             onClick={() => setActiveTab('signin')}
-            className={`px-6 py-2 rounded-full text-sm font-medium transition-colors ${
-              activeTab === 'signin' ? 'bg-dark-500 text-white' : 'text-gray-400 hover:text-white'
+            className={`flex-1 px-6 py-2.5 rounded-full text-sm font-medium transition-colors ${
+              activeTab === 'signin' ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg' : 'text-gray-400 hover:text-white'
             }`}
           >
             Sign in
@@ -82,7 +94,8 @@ const Login = () => {
         </div>
 
         {/* Title */}
-        <h1 className="text-2xl font-semibold text-white mb-6">Welcome back</h1>
+        <h1 className="text-2xl font-bold text-white mb-2 text-center">Welcome back</h1>
+        <p className="text-gray-400 text-sm mb-6 text-center">Sign in to access your trading account</p>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -135,7 +148,7 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-white text-black font-medium py-3 rounded-lg hover:bg-gray-100 transition-colors mt-2 disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold py-3.5 rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all mt-2 disabled:opacity-50 shadow-lg shadow-blue-500/25"
           >
             {loading ? 'Signing in...' : 'Sign in'}
           </button>

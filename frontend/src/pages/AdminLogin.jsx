@@ -40,25 +40,34 @@ const AdminLogin = () => {
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-l from-purple-500/20 via-red-500/20 to-transparent rounded-full blur-3xl" />
       
       {/* Modal */}
-      <div className="relative bg-dark-700 rounded-2xl p-6 sm:p-8 w-full max-w-md border border-gray-800 mx-4 sm:mx-0">
+      <div className="relative bg-dark-700 rounded-2xl p-6 sm:p-8 w-full max-w-md border border-gray-800 mx-4 sm:mx-0 shadow-2xl">
         {/* Close button */}
         <button 
-          onClick={() => navigate('/')}
+          onClick={() => window.location.href = 'https://setupfx24.com'}
           className="absolute top-4 right-4 w-8 h-8 bg-dark-600 rounded-full flex items-center justify-center hover:bg-dark-500 transition-colors"
         >
           <X size={16} className="text-gray-400" />
         </button>
 
+        {/* Logo */}
+        <div className="flex justify-center mb-6">
+          <img 
+            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/setupFX24-logo-1766736768413.png?width=8000&height=8000&resize=contain" 
+            alt="SetupFX24 Logo" 
+            className="h-12 w-auto object-contain"
+          />
+        </div>
+
         {/* Admin Badge */}
-        <div className="flex items-center gap-2 mb-6">
-          <div className="px-3 py-1 bg-red-500/20 text-red-500 rounded-full text-sm font-medium">
+        <div className="flex justify-center mb-4">
+          <div className="px-4 py-1.5 bg-red-500/20 text-red-500 rounded-full text-sm font-semibold border border-red-500/30">
             Admin Portal
           </div>
         </div>
 
         {/* Title */}
-        <h1 className="text-2xl font-semibold text-white mb-2">Admin Login</h1>
-        <p className="text-gray-500 text-sm mb-6">Enter your admin credentials to continue</p>
+        <h1 className="text-2xl font-bold text-white mb-2 text-center">Admin Login</h1>
+        <p className="text-gray-400 text-sm mb-6 text-center">Enter your admin credentials to continue</p>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -104,7 +113,7 @@ const AdminLogin = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-red-500 text-white font-medium py-3 rounded-lg hover:bg-red-600 transition-colors mt-2 disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-red-600 to-red-500 text-white font-semibold py-3.5 rounded-lg hover:from-red-700 hover:to-red-600 transition-all mt-2 disabled:opacity-50 shadow-lg shadow-red-500/25"
           >
             {loading ? 'Signing in...' : 'Sign in as Admin'}
           </button>
