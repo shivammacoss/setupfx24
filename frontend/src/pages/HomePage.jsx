@@ -143,7 +143,7 @@ const Hero = () => {
           className="w-full h-full object-cover object-center"
           poster="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/test-clones/df683367-7790-4791-bf67-54d56d7ef621-ankar-ai/assets/images/OXXnRWwOHTLxnj6fGttTq13VSI-1.png"
         >
-          <source src="/assets/setupfx video.mp4" type="video/mp4" />
+          <source src="/assets/setupfx%20video.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
       </div>
