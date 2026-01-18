@@ -1,4 +1,8 @@
 import WebSocket from 'ws'
+import dotenv from 'dotenv'
+
+// Load environment variables
+dotenv.config()
 
 class MetaApiService {
   constructor() {
@@ -11,14 +15,13 @@ class MetaApiService {
     this.heartbeatTimer = null
     this.isConnected = false
     this.io = null
+    
+    console.log('MetaAPI: Token loaded:', this.token ? 'YES' : 'NO')
+    console.log('MetaAPI: Account ID loaded:', this.accountId ? 'YES' : 'NO')
   }
 
   setSocketIO(io) {
     this.io = io
-  }
-
-  getWebSocketUrl() {
-    return `wss://mt-client-api-v1.london.agiliumtrade.ai/ws?auth-token=${this.token}`
   }
 
   connect() {
@@ -27,153 +30,89 @@ class MetaApiService {
       return
     }
 
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      console.log('MetaAPI: Already connected')
-      return
-    }
-
-    console.log('MetaAPI: Connecting to WebSocket...')
-    
-    try {
-      this.ws = new WebSocket(this.getWebSocketUrl())
-
-      this.ws.on('open', () => {
-        console.log('MetaAPI: WebSocket connected!')
-        this.isConnected = true
-        
-        // Subscribe to market data
-        this.subscribeToMarketData()
-        
-        // Start heartbeat
-        this.startHeartbeat()
-      })
-
-      this.ws.on('message', (data) => {
-        this.handleMessage(data)
-      })
-
-      this.ws.on('error', (error) => {
-        console.error('MetaAPI: WebSocket error:', error.message)
-      })
-
-      this.ws.on('close', () => {
-        console.log('MetaAPI: WebSocket disconnected, reconnecting in 5s...')
-        this.isConnected = false
-        this.stopHeartbeat()
-        this.scheduleReconnect()
-      })
-    } catch (error) {
-      console.error('MetaAPI: Connection error:', error.message)
-      this.scheduleReconnect()
-    }
+    // Use REST API polling instead of WebSocket for simplicity
+    console.log('MetaAPI: Starting price polling...')
+    this.isConnected = true
+    this.startPricePolling()
   }
 
-  subscribeToMarketData() {
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return
+  startPricePolling() {
+    // Poll prices every 5 seconds to avoid rate limits
+    this.pollPrices()
+    this.pollingTimer = setInterval(() => {
+      this.pollPrices()
+    }, 5000)
+  }
 
-    // Subscribe to account to get market data access
-    const subscribeMsg = {
-      type: 'subscribe',
-      accountId: this.accountId,
-      subscriptions: ['marketData']
-    }
-    
-    this.ws.send(JSON.stringify(subscribeMsg))
-    console.log('MetaAPI: Subscribed to market data for account:', this.accountId)
-
-    // Subscribe to specific symbols
+  async pollPrices() {
     const symbols = this.getDefaultSymbols()
-    this.subscribeToSymbols(symbols)
-  }
-
-  subscribeToSymbols(symbols) {
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return
-
-    symbols.forEach(symbol => {
-      const msg = {
-        type: 'subscribeToMarketData',
-        accountId: this.accountId,
-        symbol: symbol,
-        subscriptions: ['quotes']
-      }
-      this.ws.send(JSON.stringify(msg))
-    })
+    let fetchedCount = 0
     
-    console.log(`MetaAPI: Subscribed to ${symbols.length} symbols`)
-  }
-
-  handleMessage(data) {
-    try {
-      const msg = JSON.parse(data.toString())
-      
-      // Handle price quotes
-      if (msg.type === 'prices' || msg.type === 'quote') {
-        const symbol = msg.symbol
-        const bid = parseFloat(msg.bid)
-        const ask = parseFloat(msg.ask)
-        
-        if (symbol && !isNaN(bid) && !isNaN(ask)) {
-          const price = { bid, ask, time: Date.now() }
-          this.priceCache.set(symbol, price)
-          
-          // Broadcast to Socket.IO subscribers
+    // Fetch one symbol at a time with delay to avoid rate limits
+    for (let i = 0; i < symbols.length; i++) {
+      const symbol = symbols[i]
+      try {
+        const price = await this.fetchPriceQuiet(symbol)
+        if (price) {
+          fetchedCount++
           if (this.io && this.subscribers.size > 0) {
             this.io.to('prices').emit('priceUpdate', { symbol, price })
           }
         }
+      } catch (e) {
+        // Ignore individual symbol errors
       }
       
-      // Handle synchronization complete
-      if (msg.type === 'synchronizationStarted') {
-        console.log('MetaAPI: Synchronization started')
+      // Add 500ms delay between requests to avoid rate limiting
+      if (i < symbols.length - 1) {
+        await new Promise(r => setTimeout(r, 500))
+      }
+    }
+    
+    if (fetchedCount > 0) {
+      console.log(`MetaAPI: Fetched ${fetchedCount}/${symbols.length} prices`)
+    }
+    
+    // Broadcast full price stream
+    if (this.io && this.subscribers.size > 0) {
+      this.io.to('prices').emit('priceStream', {
+        prices: this.getAllPrices(),
+        updated: {},
+        timestamp: Date.now()
+      })
+    }
+  }
+  
+  // Quiet version that doesn't log errors (for polling)
+  async fetchPriceQuiet(symbol) {
+    try {
+      const url = `https://mt-client-api-v1.london.agiliumtrade.ai/users/current/accounts/${this.accountId}/symbols/${symbol}/current-price`
+      const response = await fetch(url, {
+        headers: {
+          'auth-token': this.token
+        }
+      })
+      
+      if (!response.ok) {
+        return null
       }
       
-      if (msg.type === 'accountInformation') {
-        console.log('MetaAPI: Account synchronized')
+      const data = await response.json()
+      if (data.bid && data.ask) {
+        const price = { bid: data.bid, ask: data.ask, time: Date.now() }
+        this.priceCache.set(symbol, price)
+        return price
       }
-
-      // Handle errors
-      if (msg.type === 'error') {
-        console.error('MetaAPI: Error:', msg.message)
-      }
+      return null
     } catch (error) {
-      // Ignore parse errors
+      return null
     }
-  }
-
-  startHeartbeat() {
-    this.stopHeartbeat()
-    this.heartbeatTimer = setInterval(() => {
-      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        this.ws.ping()
-      }
-    }, 30000)
-  }
-
-  stopHeartbeat() {
-    if (this.heartbeatTimer) {
-      clearInterval(this.heartbeatTimer)
-      this.heartbeatTimer = null
-    }
-  }
-
-  scheduleReconnect() {
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer)
-    }
-    this.reconnectTimer = setTimeout(() => {
-      this.connect()
-    }, 5000)
   }
 
   disconnect() {
-    this.stopHeartbeat()
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer)
-    }
-    if (this.ws) {
-      this.ws.close()
-      this.ws = null
+    if (this.pollingTimer) {
+      clearInterval(this.pollingTimer)
+      this.pollingTimer = null
     }
     this.isConnected = false
   }
