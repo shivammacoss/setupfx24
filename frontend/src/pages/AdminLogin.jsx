@@ -23,7 +23,7 @@ const AdminLogin = () => {
     setError('')
     
     // Simple admin credentials check (in production, use proper backend auth)
-    if (formData.email === 'admin@admin.com' && formData.password === 'admin123') {
+    if (formData.email === 'support@setupfx24.com' && formData.password === 'Setupfx24@987') {
       localStorage.setItem('adminToken', 'admin-authenticated')
       localStorage.setItem('adminUser', JSON.stringify({ email: formData.email, role: 'admin' }))
       navigate('/admin/dashboard')
