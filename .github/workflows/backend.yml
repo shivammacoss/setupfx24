@@ -1,23 +1,46 @@
-#Backend CI
+# Backend CI
 
 name: Backend.js CI
+
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'backend/**'
+
 jobs:
   build:
     runs-on: self-hosted
+
     strategy:
       matrix:
         node-version: [22.x]
+
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
       - name: Backup .env
         run: |
-          if [ -f .env ]; then mv .env /tmp/env_backup; fi
-      - uses: actions/checkout@v4
+          if [ -f backend/.env ]; then mv backend/.env /tmp/backend_env_backup; fi
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Build backend
+        run: npm run build --if-present
+        working-directory: backend
+
       - name: Restore .env
         run: |
-          if [ -f /tmp/env_backup ]; then mv /tmp/env_backup .env; fi
-      - run: npm ci
-      - run: npm run build --if-present
-      - run: sudo pm2 restart backend
+          if [ -f /tmp/backend_env_backup ]; then mv /tmp/backend_env_backup backend/.env; fi
+
+      - name: Restart backend
+        run: sudo pm2 restart backend
