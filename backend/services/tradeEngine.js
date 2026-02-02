@@ -482,6 +482,10 @@ class TradeEngine {
   }
 
   // Check and execute stop-out
+  // NEW LOGIC: Trade can lose more if equity allows
+  // Max loss = Equity - Total Used Margin
+  // Stop-out triggers when Margin Level <= Stop Out Level %
+  // Margin Level = (Equity / Used Margin) * 100
   async checkStopOut(tradingAccountId, currentPrices) {
     const account = await TradingAccount.findById(tradingAccountId).populate('accountTypeId')
     if (!account) return null
@@ -492,17 +496,44 @@ class TradeEngine {
     const settings = await TradeSettings.getSettings(account.accountTypeId?._id)
     const summary = await this.getAccountSummary(tradingAccountId, openTrades, currentPrices)
 
-    // CRITICAL: Stop out ONLY when equity is zero or negative
-    // Removed free margin check - only equity based stop-out
-    const shouldStopOut = summary.equity <= 0
+    // Get stop-out level from settings (default 100%)
+    // 100% means stop-out when equity equals used margin (can't cover margins anymore)
+    const stopOutLevel = settings.stopOutLevel || 100
+
+    // Calculate margin level: (Equity / Used Margin) * 100
+    // If no margin used, no stop-out needed
+    if (summary.usedMargin <= 0) {
+      return { stopOutTriggered: false }
+    }
+
+    const marginLevel = (summary.equity / summary.usedMargin) * 100
+
+    // Max loss possible = Equity - Used Margin (trade can lose until equity equals margin)
+    const maxLossPossible = summary.equity - summary.usedMargin
+
+    // Stop-out triggers when:
+    // 1. Margin Level drops to or below stop-out level (e.g., 50%), OR
+    // 2. Equity becomes zero or negative (absolute protection)
+    const shouldStopOut = marginLevel <= stopOutLevel || summary.equity <= 0
 
     if (shouldStopOut) {
-      console.log(`STOP OUT TRIGGERED for account ${tradingAccountId}: Equity=${summary.equity} (Balance=${summary.balance}, FloatingPnL=${summary.floatingPnl})`)
+      const reason = summary.equity <= 0 ? 'EQUITY_ZERO' : 'MARGIN_LEVEL_BREACH'
+      console.log(`STOP OUT TRIGGERED for account ${tradingAccountId}:`)
+      console.log(`  Equity: $${summary.equity.toFixed(2)}`)
+      console.log(`  Used Margin: $${summary.usedMargin.toFixed(2)}`)
+      console.log(`  Margin Level: ${marginLevel.toFixed(2)}% (Stop-out at ${stopOutLevel}%)`)
+      console.log(`  Max Loss Was: $${maxLossPossible.toFixed(2)}`)
+      console.log(`  Reason: ${reason}`)
       
-      // Force close all trades
-      const closedTrades = []
-      for (const trade of openTrades) {
+      // Force close all trades starting from the largest losing trade
+      const tradesWithPnl = openTrades.map(trade => {
         const prices = currentPrices[trade.symbol]
+        const pnl = prices ? this.calculateFloatingPnl(trade, prices.bid, prices.ask) : 0
+        return { trade, pnl, prices }
+      }).sort((a, b) => a.pnl - b.pnl) // Sort by PnL ascending (most losing first)
+
+      const closedTrades = []
+      for (const { trade, prices } of tradesWithPnl) {
         if (prices) {
           try {
             const result = await this.closeTrade(trade._id, prices.bid, prices.ask, 'STOP_OUT')
@@ -513,21 +544,35 @@ class TradeEngine {
         }
       }
 
-      // When equity is zero, balance should also be zero
+      // Recalculate final balance after all trades closed
       const finalAccount = await TradingAccount.findById(tradingAccountId)
-      finalAccount.balance = 0  // Set balance to zero when equity-based stop-out
-      await finalAccount.save()
+      
+      // If equity was zero or negative, set balance to 0
+      if (summary.equity <= 0) {
+        finalAccount.balance = 0
+        await finalAccount.save()
+      }
 
       return { 
         stopOutTriggered: true, 
         closedTrades,
-        reason: 'EQUITY_ZERO',
+        reason,
+        marginLevel: marginLevel.toFixed(2),
+        stopOutLevel,
         finalEquity: summary.equity,
-        finalBalance: 0
+        finalBalance: finalAccount.balance,
+        maxLossPossible
       }
     }
 
-    return { stopOutTriggered: false }
+    return { 
+      stopOutTriggered: false,
+      marginLevel: marginLevel.toFixed(2),
+      stopOutLevel,
+      equity: summary.equity,
+      usedMargin: summary.usedMargin,
+      maxLossPossible
+    }
   }
 
   // Check SL/TP for all open trades (non-challenge only)

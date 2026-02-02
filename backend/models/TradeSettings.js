@@ -4,7 +4,7 @@ const tradeSettingsSchema = new mongoose.Schema({
   // Stop-out settings
   stopOutLevel: {
     type: Number,
-    default: 50,
+    default: 100,
     min: 0,
     max: 100
   },
