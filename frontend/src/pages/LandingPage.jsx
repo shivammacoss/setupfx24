@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { 
   Filter, Target, Star, Lock, CheckCircle2, Database, Users, Code, 
   Activity, Globe, Shield, ChevronDown, ChevronUp, Zap, Brain, ShieldCheck, Bot,
-  Menu, X
+  Menu, X, Download
 } from 'lucide-react'
 
 // ============ NAVBAR COMPONENT ============
@@ -69,6 +69,14 @@ const Navbar = () => {
 
           <div className="hidden md:flex items-center gap-3 lg:gap-4">
             <a
+              href="/setupfx24.apk"
+              download
+              className="flex items-center gap-2 rounded-lg border border-green-500/50 bg-green-500/10 px-4 lg:px-5 py-2 lg:py-2.5 text-[14px] lg:text-[15px] font-semibold text-green-400 backdrop-blur-sm transition-all hover:bg-green-500/20 active:scale-95"
+            >
+              <Download className="w-4 h-4" />
+              Download APK
+            </a>
+            <a
               href="/user/login"
               className="rounded-lg border border-white/20 bg-white/5 px-4 lg:px-5 py-2 lg:py-2.5 text-[14px] lg:text-[15px] font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/10 active:scale-95"
             >
@@ -108,6 +116,14 @@ const Navbar = () => {
               ))}
             </div>
             <div className="mt-8 flex flex-col gap-4">
+              <a
+                href="/setupfx24.apk"
+                download
+                className="w-full flex items-center justify-center gap-2 rounded-lg border border-green-500/50 bg-green-500/10 px-5 py-3 text-[16px] font-semibold text-green-400 transition-all hover:bg-green-500/20"
+              >
+                <Download className="w-5 h-5" />
+                Download APK
+              </a>
               <a
                 href="/user/login"
                 className="w-full rounded-lg border border-white/20 bg-white/5 px-5 py-3 text-[16px] font-semibold text-white transition-all hover:bg-white/10 text-center"
