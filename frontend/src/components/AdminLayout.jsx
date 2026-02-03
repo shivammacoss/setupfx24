@@ -23,7 +23,8 @@ import {
   Palette,
   Mail,
   Gift,
-  Image
+  Image,
+  User
 } from 'lucide-react'
 import logoImage from '../assets/SetupFX.png'
 
@@ -63,6 +64,7 @@ const AdminLayout = ({ children, title, subtitle }) => {
     { name: 'Employee Management', icon: Shield, path: '/admin/admin-management', sidebarKey: 'employeeManagement' },
     { name: 'KYC Verification', icon: FileCheck, path: '/admin/kyc', sidebarKey: 'kycVerification' },
     { name: 'Support Tickets', icon: HeadphonesIcon, path: '/admin/support', sidebarKey: 'supportTickets' },
+    { name: 'My Profile', icon: User, path: '/admin/profile', sidebarKey: 'myProfile' },
   ]
 
   // Check if user has sidebar permission (SUPER_ADMIN has all permissions)
@@ -70,6 +72,7 @@ const AdminLayout = ({ children, title, subtitle }) => {
     if (!admin) return false
     if (admin.role === 'SUPER_ADMIN') return true
     if (sidebarKey === 'overviewDashboard') return true // Dashboard always visible
+    if (sidebarKey === 'myProfile') return true // My Profile always visible
     
     // Check sidebarPermissions (new format)
     if (admin.sidebarPermissions && admin.sidebarPermissions[sidebarKey] === true) {

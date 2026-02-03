@@ -43,6 +43,7 @@ import AdminBonusManagement from './pages/AdminBonusManagement'
 import AdminBannerManagement from './pages/AdminBannerManagement'
 import LandingPage from './pages/LandingPage'
 import EmployeeLogin from './pages/EmployeeLogin'
+import AdminProfile from './pages/AdminProfile'
 
 function App() {
   return (
@@ -89,6 +90,7 @@ function App() {
         <Route path="/admin/email-templates" element={<AdminEmailTemplates />} />
         <Route path="/admin/bonus-management" element={<AdminBonusManagement />} />
         <Route path="/admin/banners" element={<AdminBannerManagement />} />
+        <Route path="/admin/profile" element={<AdminProfile />} />
         <Route path="/admin-employee" element={<EmployeeLogin />} />
         <Route path="/buy-challenge" element={<BuyChallengePage />} />
         <Route path="/challenge-dashboard" element={<ChallengeDashboardPage />} />

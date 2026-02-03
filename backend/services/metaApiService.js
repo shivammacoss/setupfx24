@@ -141,12 +141,21 @@ async function connect() {
     if (onConnectionChange) onConnectionChange(true)
     
     // Subscribe to market data
+    let subscribedCount = 0
     for (const symbol of STREAMING_SYMBOLS) {
       try {
         await connection.subscribeToMarketData(symbol)
-      } catch (e) {}
+        subscribedCount++
+      } catch (e) {
+        console.log(`[MetaAPI] Failed to subscribe to ${symbol}: ${e.message}`)
+      }
     }
-    console.log(`[MetaAPI] Subscribed to ${STREAMING_SYMBOLS.length} symbols`)
+    console.log(`[MetaAPI] Subscribed to ${subscribedCount}/${STREAMING_SYMBOLS.length} symbols`)
+    
+    // Log initial prices after a delay
+    setTimeout(() => {
+      console.log(`[MetaAPI] Price cache has ${priceCache.size} symbols:`, Array.from(priceCache.keys()).join(', '))
+    }, 5000)
     
   } catch (error) {
     console.error('[MetaAPI] Error:', error.message)
