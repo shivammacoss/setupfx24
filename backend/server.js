@@ -92,6 +92,7 @@ metaApiService.setOnConnectionChange((connected) => {
 })
 
 // Background price streaming - Binance polling + MetaAPI WebSocket
+let priceStreamStarted = false
 async function streamPrices() {
   const now = Date.now()
   const updatedPrices = {}
@@ -112,6 +113,12 @@ async function streamPrices() {
           updatedPrices[symbol] = price
         }
       })
+      
+      // Log once when prices start flowing
+      if (!priceStreamStarted && priceCache.size > 0) {
+        priceStreamStarted = true
+        console.log(`[Prices] Stream started - ${priceCache.size} symbols in cache`)
+      }
     }
   } catch (e) {
     console.error('[Binance] Error fetching prices:', e.message)

@@ -172,13 +172,78 @@ function disconnect() {
 function getPrice(symbol) { return priceCache.get(symbol) || null }
 function getAllPrices() { return Object.fromEntries(priceCache) }
 function getPriceCache() { return priceCache }
-async function fetchPriceREST(symbol) { return priceCache.get(symbol) || null }
+
+// Binance symbol mapping for crypto
+const BINANCE_MAP = {
+  'BTCUSD': 'BTCUSDT', 'ETHUSD': 'ETHUSDT', 'BNBUSD': 'BNBUSDT', 'SOLUSD': 'SOLUSDT',
+  'XRPUSD': 'XRPUSDT', 'ADAUSD': 'ADAUSDT', 'DOGEUSD': 'DOGEUSDT', 'TRXUSD': 'TRXUSDT',
+  'LINKUSD': 'LINKUSDT', 'MATICUSD': 'MATICUSDT', 'DOTUSD': 'DOTUSDT',
+  'SHIBUSD': 'SHIBUSDT', 'LTCUSD': 'LTCUSDT', 'AVAXUSD': 'AVAXUSDT',
+  'UNIUSD': 'UNIUSDT', 'ATOMUSD': 'ATOMUSDT', 'ETCUSD': 'ETCUSDT'
+}
+
+// Fetch prices directly from Binance API (fallback)
+async function fetchFromBinance() {
+  try {
+    const response = await fetch('https://api.binance.com/api/v3/ticker/bookTicker')
+    if (!response.ok) return {}
+    
+    const tickers = await response.json()
+    const tickerMap = {}
+    tickers.forEach(t => { tickerMap[t.symbol] = t })
+    
+    const prices = {}
+    for (const [symbol, binanceSymbol] of Object.entries(BINANCE_MAP)) {
+      const ticker = tickerMap[binanceSymbol]
+      if (ticker) {
+        const price = { bid: parseFloat(ticker.bidPrice), ask: parseFloat(ticker.askPrice), time: Date.now() }
+        priceCache.set(symbol, price)
+        prices[symbol] = price
+      }
+    }
+    return prices
+  } catch (e) {
+    console.error('[Binance Fallback] Error:', e.message)
+    return {}
+  }
+}
+
+async function fetchPriceREST(symbol) {
+  let cached = priceCache.get(symbol)
+  if (cached) return cached
+  
+  // Try Binance fallback for crypto
+  if (BINANCE_MAP[symbol]) {
+    await fetchFromBinance()
+    return priceCache.get(symbol) || null
+  }
+  return null
+}
+
 async function fetchBatchPricesREST(symbols) {
   const prices = {}
+  const missing = []
+  
   for (const symbol of symbols) {
     const cached = priceCache.get(symbol)
-    if (cached) prices[symbol] = cached
+    if (cached) {
+      prices[symbol] = cached
+    } else {
+      missing.push(symbol)
+    }
   }
+  
+  // If cache is mostly empty, try Binance fallback
+  if (missing.length > 0 && priceCache.size < 5) {
+    console.log('[MetaAPI] Cache empty, fetching from Binance fallback...')
+    const binancePrices = await fetchFromBinance()
+    for (const symbol of missing) {
+      if (binancePrices[symbol]) {
+        prices[symbol] = binancePrices[symbol]
+      }
+    }
+  }
+  
   return prices
 }
 

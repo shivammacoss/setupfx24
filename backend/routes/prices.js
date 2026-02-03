@@ -168,6 +168,23 @@ router.get('/:symbol', async (req, res) => {
   }
 })
 
+// GET /api/prices/status - Debug endpoint to check price service status
+router.get('/status', async (req, res) => {
+  const allPrices = metaApiService.getAllPrices()
+  const cacheSize = Object.keys(allPrices).length
+  const isConnected = metaApiService.isWebSocketConnected()
+  
+  res.json({
+    success: true,
+    status: {
+      metaApiConnected: isConnected,
+      cacheSize,
+      samplePrices: Object.keys(allPrices).slice(0, 5),
+      timestamp: Date.now()
+    }
+  })
+})
+
 // POST /api/prices/batch - Get multiple symbol prices
 router.post('/batch', async (req, res) => {
   try {
@@ -176,25 +193,12 @@ router.post('/batch', async (req, res) => {
       return res.status(400).json({ success: false, message: 'symbols array required' })
     }
     
+    // Always try to fetch batch prices (includes fallback logic)
+    const batchPrices = await metaApiService.fetchBatchPricesREST(symbols.filter(s => SYMBOL_MAP[s]))
+    
     const prices = {}
-    const missingSymbols = []
-    
-    // Get prices from cache first
-    for (const symbol of symbols) {
-      if (!SYMBOL_MAP[symbol]) continue
-      
-      const cached = metaApiService.getPrice(symbol)
-      if (cached) {
-        prices[symbol] = { bid: cached.bid, ask: cached.ask }
-      } else {
-        missingSymbols.push(symbol)
-      }
-    }
-    
-    // Fetch missing prices via REST API
-    if (missingSymbols.length > 0) {
-      const batchPrices = await metaApiService.fetchBatchPricesREST(missingSymbols)
-      for (const [symbol, price] of Object.entries(batchPrices)) {
+    for (const [symbol, price] of Object.entries(batchPrices)) {
+      if (price && price.bid && price.ask) {
         prices[symbol] = { bid: price.bid, ask: price.ask }
       }
     }
