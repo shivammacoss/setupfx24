@@ -851,14 +851,29 @@ const WalletPage = () => {
               <div className="mb-4 p-4 bg-dark-700 rounded-lg">
                 {selectedPaymentMethod.type === 'Bank Transfer' && (
                   <div className="space-y-2 text-sm">
-                    <p className="text-gray-400">Bank: <span className="text-white">{selectedPaymentMethod.bankName}</span></p>
-                    <p className="text-gray-400">Account: <span className="text-white">{selectedPaymentMethod.accountNumber}</span></p>
-                    <p className="text-gray-400">Name: <span className="text-white">{selectedPaymentMethod.accountHolderName}</span></p>
-                    <p className="text-gray-400">IFSC: <span className="text-white">{selectedPaymentMethod.ifscCode}</span></p>
+                    <p className="text-gray-400 flex items-center justify-between cursor-pointer hover:bg-dark-600 p-1 rounded" onClick={() => { navigator.clipboard.writeText(selectedPaymentMethod.bankName); setSuccess('Bank name copied!'); setTimeout(() => setSuccess(''), 2000); }}>
+                      Bank: <span className="text-white">{selectedPaymentMethod.bankName}</span>
+                      <Copy size={14} className="text-gray-500 ml-2" />
+                    </p>
+                    <p className="text-gray-400 flex items-center justify-between cursor-pointer hover:bg-dark-600 p-1 rounded" onClick={() => { navigator.clipboard.writeText(selectedPaymentMethod.accountNumber); setSuccess('Account number copied!'); setTimeout(() => setSuccess(''), 2000); }}>
+                      Account: <span className="text-white">{selectedPaymentMethod.accountNumber}</span>
+                      <Copy size={14} className="text-gray-500 ml-2" />
+                    </p>
+                    <p className="text-gray-400 flex items-center justify-between cursor-pointer hover:bg-dark-600 p-1 rounded" onClick={() => { navigator.clipboard.writeText(selectedPaymentMethod.accountHolderName); setSuccess('Name copied!'); setTimeout(() => setSuccess(''), 2000); }}>
+                      Name: <span className="text-white">{selectedPaymentMethod.accountHolderName}</span>
+                      <Copy size={14} className="text-gray-500 ml-2" />
+                    </p>
+                    <p className="text-gray-400 flex items-center justify-between cursor-pointer hover:bg-dark-600 p-1 rounded" onClick={() => { navigator.clipboard.writeText(selectedPaymentMethod.ifscCode); setSuccess('IFSC copied!'); setTimeout(() => setSuccess(''), 2000); }}>
+                      IFSC: <span className="text-white">{selectedPaymentMethod.ifscCode}</span>
+                      <Copy size={14} className="text-gray-500 ml-2" />
+                    </p>
                   </div>
                 )}
                 {selectedPaymentMethod.type === 'UPI' && (
-                  <p className="text-gray-400">UPI ID: <span className="text-white">{selectedPaymentMethod.upiId}</span></p>
+                  <p className="text-gray-400 flex items-center justify-between cursor-pointer hover:bg-dark-600 p-2 rounded" onClick={() => { navigator.clipboard.writeText(selectedPaymentMethod.upiId); setSuccess('UPI ID copied!'); setTimeout(() => setSuccess(''), 2000); }}>
+                    UPI ID: <span className="text-white">{selectedPaymentMethod.upiId}</span>
+                    <Copy size={14} className="text-gray-500 ml-2" />
+                  </p>
                 )}
                 {selectedPaymentMethod.type === 'QR Code' && selectedPaymentMethod.qrCodeImage && (
                   <img src={selectedPaymentMethod.qrCodeImage} alt="QR Code" className="mx-auto max-w-48" />
