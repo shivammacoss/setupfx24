@@ -144,7 +144,7 @@ router.post('/users/:id/deduct', async (req, res) => {
 // POST /api/admin/users/:id/add-fund - Add funds to user wallet (Admin only)
 router.post('/users/:id/add-fund', async (req, res) => {
   try {
-    const { amount, reason } = req.body
+    const { amount, reason, adminId } = req.body
     if (!amount || amount <= 0) {
       return res.status(400).json({ success: false, message: 'Invalid amount' })
     }
@@ -156,6 +156,7 @@ router.post('/users/:id/add-fund', async (req, res) => {
     
     // Use Wallet model (same as user wallet page)
     const Wallet = (await import('../models/Wallet.js')).default
+    const Transaction = (await import('../models/Transaction.js')).default
     let wallet = await Wallet.findOne({ userId: req.params.id })
     if (!wallet) {
       wallet = new Wallet({ userId: req.params.id, balance: 0 })
@@ -164,6 +165,20 @@ router.post('/users/:id/add-fund', async (req, res) => {
     const previousBalance = wallet.balance || 0
     wallet.balance = previousBalance + parseFloat(amount)
     await wallet.save()
+    
+    // Create transaction record for admin fund addition to wallet
+    await Transaction.create({
+      userId: req.params.id,
+      walletId: wallet._id,
+      type: 'Admin_Fund_Add',
+      amount: parseFloat(amount),
+      paymentMethod: 'System',
+      description: reason || 'Admin wallet fund addition',
+      status: 'Completed',
+      transactionRef: `ADMIN${Date.now()}`,
+      processedBy: adminId || null,
+      processedAt: new Date()
+    })
     
     console.log(`[Admin] Added $${amount} to user ${user.email} wallet. Balance: $${previousBalance} -> $${wallet.balance}`)
     
