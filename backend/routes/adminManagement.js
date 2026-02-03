@@ -10,7 +10,94 @@ const router = express.Router()
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 
+// Middleware to verify admin token
+const verifyAdminToken = (req, res, next) => {
+  const authHeader = req.headers.authorization
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ success: false, message: 'No token provided' })
+  }
+  
+  const token = authHeader.split(' ')[1]
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET)
+    req.adminId = decoded.adminId
+    next()
+  } catch (error) {
+    return res.status(401).json({ success: false, message: 'Invalid token' })
+  }
+}
+
 // ==================== ADMIN AUTH ====================
+
+// PUT /api/admin-mgmt/change-password - Change own password
+router.put('/change-password', verifyAdminToken, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Current and new password required' })
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' })
+    }
+
+    const admin = await Admin.findById(req.adminId)
+    if (!admin) {
+      return res.status(404).json({ success: false, message: 'Admin not found' })
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, admin.password)
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: 'Current password is incorrect' })
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10)
+    admin.password = hashedPassword
+    await admin.save()
+
+    res.json({ success: true, message: 'Password changed successfully' })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error changing password', error: error.message })
+  }
+})
+
+// PUT /api/admin-mgmt/update-profile - Update own profile (name, phone, brandName)
+router.put('/update-profile', verifyAdminToken, async (req, res) => {
+  try {
+    const { firstName, lastName, phone, brandName } = req.body
+
+    if (!firstName || !firstName.trim()) {
+      return res.status(400).json({ success: false, message: 'First name is required' })
+    }
+
+    const admin = await Admin.findById(req.adminId)
+    if (!admin) {
+      return res.status(404).json({ success: false, message: 'Admin not found' })
+    }
+
+    admin.firstName = firstName.trim()
+    admin.lastName = lastName?.trim() || ''
+    admin.phone = phone?.trim() || ''
+    if (brandName !== undefined) {
+      admin.brandName = brandName?.trim() || ''
+    }
+    await admin.save()
+
+    res.json({ 
+      success: true, 
+      message: 'Profile updated successfully',
+      admin: {
+        firstName: admin.firstName,
+        lastName: admin.lastName,
+        phone: admin.phone,
+        brandName: admin.brandName
+      }
+    })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error updating profile', error: error.message })
+  }
+})
 
 // POST /api/admin-mgmt/login - Super Admin login only (for /admin route)
 router.post('/login', async (req, res) => {
