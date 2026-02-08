@@ -920,13 +920,9 @@ const Footer = () => {
           <div className="col-span-2 sm:col-span-1 lg:col-span-2 flex flex-col gap-4 sm:gap-6">
             <h4 className="text-white font-bold text-sm sm:text-base">Legal</h4>
             <ul className="flex flex-col gap-2 sm:gap-4">
-              {['Privacy Policy', 'Terms & Conditions', 'Disclaimer'].map((item) => (
-                <li key={item}>
-                  <a href="#" className="text-[#a0a0a0] hover:text-white transition-colors text-xs sm:text-sm">
-                    {item}
-                  </a>
-                </li>
-              ))}
+              <li><a href="/privacy-policy" className="text-[#a0a0a0] hover:text-white transition-colors text-xs sm:text-sm">Privacy Policy</a></li>
+              <li><a href="/terms-of-service" className="text-[#a0a0a0] hover:text-white transition-colors text-xs sm:text-sm">Terms & Conditions</a></li>
+              <li><a href="/account-deletion" className="text-[#a0a0a0] hover:text-white transition-colors text-xs sm:text-sm">Account Deletion</a></li>
             </ul>
           </div>
         </div>
