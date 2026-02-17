@@ -26,7 +26,7 @@ import {
   Image,
   User
 } from 'lucide-react'
-import logoImage from '../assets/SetupFX.png'
+import logoImage from '../assets/setupfx24.png'
 
 const AdminLayout = ({ children, title, subtitle }) => {
   const navigate = useNavigate()

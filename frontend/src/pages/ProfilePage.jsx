@@ -38,7 +38,7 @@ import {
 } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 import { API_URL, API_BASE_URL } from '../config/api'
-import logoImage from '../assets/SetupFX.png'
+import logoImage from '../assets/setupfx24.png'
 
 const ProfilePage = () => {
   const navigate = useNavigate()

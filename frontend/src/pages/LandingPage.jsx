@@ -1,470 +1,886 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import setupfxLogo from '../assets/setupfx24.png'
+import setupfxVideo from '../assets/setupfxvideo.mp4'
+import terminalImg from '../assets/terminal.png'
+import { motion, AnimatePresence } from 'framer-motion'
 import { 
-  Filter, Target, Star, Lock, CheckCircle2, Database, Users, Code, 
-  Activity, Globe, Shield, ChevronDown, ChevronUp, Zap, Brain, ShieldCheck, Bot,
-  Menu, X, Download
+  Menu, X, ChevronDown, Code2, Globe, Smartphone, Database, Palette,
+  Target, Search, Megaphone, Share2, FileText, Layers, Users, TrendingUp,
+  Copy, ArrowLeftRight, Droplets, Plug, Shield, Workflow, Tag, BookOpen,
+  FolderKanban, HelpCircle, Zap, ShieldCheck, Settings, Cpu, LayoutDashboard,
+  Building2, Rocket, Building, Crown, Eye, HeadphonesIcon, MessageSquare,
+  Paintbrush, TestTube, ArrowUpRight, Check, Star, Quote, Mail, MessageCircle, MapPin
 } from 'lucide-react'
 
 // ============ NAVBAR COMPONENT ============
-const Navbar = () => {
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const navigate = useNavigate()
+const servicesItems = [
+  { icon: Code2, label: "Software Development", href: "/services/software-development", desc: "Custom software tailored to your business needs" },
+  { icon: Globe, label: "Web Application Development", href: "/services/web-application-development", desc: "Scalable, responsive web apps with modern stacks" },
+  { icon: Smartphone, label: "Mobile App Development", href: "/services/mobile-app-development", desc: "Native & cross-platform mobile solutions" },
+  { icon: Database, label: "CRM & Business Systems", href: "/services/crm-business-systems", desc: "Custom CRM, ERP & admin panel development" },
+  { icon: Palette, label: "UI / UX Design", href: "/services/ui-ux-design", desc: "User-centered design that converts & delights" },
+]
 
-  const menuItems = [
-    { name: 'White Label Solutions', href: '#' },
-    { name: 'CRM & API', href: '#' },
-    { name: 'Web Development', href: '#' },
-    { name: 'Pricing', href: '#pricing' },
-    { name: 'Contact', href: '#contact' },
-  ]
+const marketingItems = [
+  { icon: Target, label: "Marketing Strategy", href: "/marketing/strategy", desc: "Data-driven strategies for measurable growth" },
+  { icon: Search, label: "Search Engine Optimization", href: "/marketing/seo", desc: "Rank higher and drive organic traffic" },
+  { icon: Megaphone, label: "Paid Advertising", href: "/marketing/paid-advertising", desc: "Google Ads & social media campaigns" },
+  { icon: Share2, label: "Social Media Marketing", href: "/marketing/social-media", desc: "Build brand presence across platforms" },
+  { icon: FileText, label: "Content Marketing", href: "/marketing/content-marketing", desc: "Engaging content that drives engagement" },
+]
+
+const solutionsItems = [
+  { icon: Layers, label: "White Label Solution", href: "/solutions/white-label", desc: "Launch your own branded trading platform" },
+  { icon: Users, label: "IB Management", href: "/solutions/ib-management", desc: "Introducing broker management system" },
+  { icon: TrendingUp, label: "Prop Trading", href: "/solutions/prop-trading", desc: "Proprietary trading platform & tools" },
+  { icon: Copy, label: "Copy Trading", href: "/solutions/copy-trading", desc: "Social & copy trading infrastructure" },
+  { icon: ArrowLeftRight, label: "Advanced Order Exchange", href: "/solutions/advance-order-exchange", desc: "High-performance order matching engine" },
+  { icon: Tag, label: "Grey Label Platform", href: "/solutions/grey-label", desc: "Cost-effective semi-branded trading platform" },
+]
+
+const liquidityItems = [
+  { icon: Plug, label: "Client Liquidity Integration", href: "/liquidity#client-integration", desc: "Connect your existing liquidity provider" },
+  { icon: Droplets, label: "SetupFX Liquidity Provider", href: "/liquidity#setupfx-liquidity", desc: "Multi-asset deep liquidity from SetupFX" },
+  { icon: Shield, label: "A-Book & B-Book Support", href: "/liquidity#ab-book", desc: "Smart order routing & risk management" },
+  { icon: Workflow, label: "Platform Compatibility", href: "/liquidity#compatibility", desc: "Works with all trading platforms" },
+]
+
+const resourcesItems = [
+  { icon: BookOpen, label: "Blog", href: "/resources/blog", desc: "Insights, tips & industry trends" },
+  { icon: FolderKanban, label: "Case Studies", href: "/resources/case-studies", desc: "Real results from real clients" },
+  { icon: HelpCircle, label: "FAQs", href: "/resources/faqs", desc: "Answers to common questions" },
+]
+
+const dropdowns = [
+  { key: "services", label: "Services", items: servicesItems, footerLink: { label: "View all services", href: "/services/software-development" } },
+  { key: "marketing", label: "Digital Marketing", items: marketingItems, footerLink: { label: "View all marketing services", href: "/marketing/strategy" } },
+  { key: "solutions", label: "Solutions", items: solutionsItems, footerLink: { label: "View all solutions", href: "/solutions/custom-software" } },
+  { key: "liquidity", label: "Liquidity", items: liquidityItems, footerLink: { label: "View liquidity solutions", href: "/liquidity" } },
+  { key: "resources", label: "Resources", items: resourcesItems },
+]
+
+const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const [activeDropdown, setActiveDropdown] = useState(null)
+  const [mobileAccordion, setMobileAccordion] = useState(null)
+  const navRef = useRef(null)
+  const timeoutRef = useRef(null)
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50)
-    }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    const handleScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
   useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'unset'
+    const handleClickOutside = (e) => {
+      if (navRef.current && !navRef.current.contains(e.target)) {
+        setActiveDropdown(null)
+      }
     }
-    return () => {
-      document.body.style.overflow = 'unset'
-    }
-  }, [mobileMenuOpen])
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  const handleMouseEnter = (key) => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    setActiveDropdown(key)
+  }
+
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => setActiveDropdown(null), 150)
+  }
+
+  const toggleMobileAccordion = (key) => {
+    setMobileAccordion(mobileAccordion === key ? null : key)
+  }
 
   return (
-    <>
-      <nav className={`fixed top-0 left-0 right-0 z-[100] w-full border-b transition-all duration-300 ${
-        isScrolled ? 'bg-black/90 border-white/10 backdrop-blur-lg' : 'bg-black/40 border-white/5 backdrop-blur-lg'
-      }`}>
-        <div className="mx-auto flex h-[70px] md:h-[86px] max-w-[1440px] items-center justify-between px-4 md:px-6 xl:px-8">
-          <div className="flex shrink-0 items-center">
-            <a href="/" className="flex items-center" aria-label="SetupFX24 Home">
-              <img 
-                src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/setupFX24-logo-1766736768413.png?width=8000&height=8000&resize=contain" 
-                alt="SetupFX24 Logo" 
-                className="h-8 md:h-10 w-auto object-contain"
-              />
-            </a>
-          </div>
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? "bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800/50 shadow-lg shadow-black/10"
+          : "bg-transparent"
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-6 lg:px-8" ref={navRef}>
+        <div className="flex items-center justify-between h-[72px]">
+          <a href="/" className="flex items-center flex-shrink-0">
+            <img src={setupfxLogo} alt="SetupFX24" className="h-8 w-auto" />
+          </a>
 
-          <div className="hidden items-center gap-x-6 lg:gap-x-8 lg:flex">
-            {menuItems.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                className="text-[14px] lg:text-[15px] font-medium text-white transition-opacity hover:opacity-80"
-              >
-                {item.name}
-              </a>
+          <div className="hidden xl:flex items-center gap-1">
+            {dropdowns.map((dropdown) => (
+              <div key={dropdown.key} className="relative">
+                <button
+                  onMouseEnter={() => handleMouseEnter(dropdown.key)}
+                  onClick={() => setActiveDropdown(activeDropdown === dropdown.key ? null : dropdown.key)}
+                  className={`flex items-center gap-1 text-sm font-medium transition-all duration-200 px-3 py-2 rounded-lg ${
+                    activeDropdown === dropdown.key
+                      ? "text-white bg-white/5"
+                      : "text-zinc-400 hover:text-white hover:bg-white/5"
+                  }`}
+                >
+                  {dropdown.label}
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                      activeDropdown === dropdown.key ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                <AnimatePresence>
+                  {activeDropdown === dropdown.key && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.97 }}
+                      transition={{ duration: 0.15 }}
+                      onMouseEnter={() => handleMouseEnter(dropdown.key)}
+                      onMouseLeave={handleMouseLeave}
+                      className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[380px] rounded-xl border border-zinc-800 bg-zinc-900 backdrop-blur-xl shadow-2xl shadow-black/60 overflow-hidden"
+                    >
+                      <div className="p-2">
+                        {dropdown.items.map((item) => (
+                          <a
+                            key={item.label}
+                            href={item.href}
+                            onClick={() => setActiveDropdown(null)}
+                            className="flex items-start gap-3.5 px-3.5 py-3 rounded-lg hover:bg-white/5 transition-colors group"
+                          >
+                            <div className="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors mt-0.5">
+                              <item.icon className="w-4 h-4 text-blue-400" />
+                            </div>
+                            <div>
+                              <div className="text-white text-sm font-medium group-hover:text-blue-400 transition-colors">
+                                {item.label}
+                              </div>
+                              <div className="text-zinc-300 text-xs mt-0.5 leading-relaxed">
+                                {item.desc}
+                              </div>
+                            </div>
+                          </a>
+                        ))}
+                      </div>
+                      {dropdown.footerLink && (
+                        <div className="border-t border-zinc-800 px-5 py-3 bg-zinc-950/50">
+                          <a
+                            href={dropdown.footerLink.href}
+                            onClick={() => setActiveDropdown(null)}
+                            className="text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors"
+                          >
+                            {dropdown.footerLink.label} →
+                          </a>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             ))}
+
+            <a
+              href="/pricing"
+              className="text-zinc-400 hover:text-white text-sm font-medium transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-white/5"
+            >
+              Pricing
+            </a>
+
+            <a
+              href="/contact"
+              className="text-zinc-400 hover:text-white text-sm font-medium transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-white/5"
+            >
+              Contact
+            </a>
           </div>
 
-          <div className="hidden md:flex items-center gap-3 lg:gap-4">
-            <a
-              href="/setupfx24.apk"
-              download
-              className="flex items-center gap-2 rounded-lg border border-green-500/50 bg-green-500/10 px-4 lg:px-5 py-2 lg:py-2.5 text-[14px] lg:text-[15px] font-semibold text-green-400 backdrop-blur-sm transition-all hover:bg-green-500/20 active:scale-95"
-            >
-              <Download className="w-4 h-4" />
-              Download APK
-            </a>
-            <a
-              href="/user/login"
-              className="rounded-lg border border-white/20 bg-white/5 px-4 lg:px-5 py-2 lg:py-2.5 text-[14px] lg:text-[15px] font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/10 active:scale-95"
-            >
-              Sign In
-            </a>
-            <a
-              href="/user/signup"
-              className="rounded-lg bg-white px-4 lg:px-5 py-2 lg:py-2.5 text-[14px] lg:text-[15px] font-semibold text-[#111111] transition-all hover:bg-opacity-90 active:scale-95"
-            >
-              Get Started
+          <div className="hidden xl:flex items-center gap-3 flex-shrink-0">
+            <a href="/user/signup" className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition-all duration-200 shadow-lg shadow-blue-600/20 hover:shadow-blue-500/30">
+              Get Free Consultation
             </a>
           </div>
 
           <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-white"
-            aria-label="Toggle menu"
+            className="xl:hidden text-white p-2 rounded-lg hover:bg-white/5 transition-colors"
+            onClick={() => setIsOpen(!isOpen)}
           >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
-      </nav>
+      </div>
 
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-[99] bg-black/95 backdrop-blur-lg md:hidden pt-[70px]">
-          <div className="flex flex-col h-full px-6 py-8">
-            <div className="flex flex-col gap-4">
-              {menuItems.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-[18px] font-medium text-white py-3 border-b border-white/10 transition-opacity hover:opacity-80"
-                >
-                  {item.name}
-                </a>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25 }}
+            className="xl:hidden bg-zinc-950/98 backdrop-blur-md border-t border-zinc-800 overflow-hidden"
+          >
+            <div className="px-6 py-6 space-y-1 max-h-[80vh] overflow-y-auto">
+              {dropdowns.map((dropdown) => (
+                <div key={dropdown.key} className="border-b border-zinc-800/50 last:border-0">
+                  <button
+                    onClick={() => toggleMobileAccordion(dropdown.key)}
+                    className="flex items-center justify-between w-full text-zinc-300 hover:text-white text-sm font-medium transition-colors py-3"
+                  >
+                    {dropdown.label}
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        mobileAccordion === dropdown.key ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+                  <AnimatePresence>
+                    {mobileAccordion === dropdown.key && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pl-4 pb-3 space-y-0.5 border-l-2 border-blue-500/30 ml-2">
+                          {dropdown.items.map((item) => (
+                            <a
+                              key={item.label}
+                              href={item.href}
+                              className="flex items-center gap-3 text-zinc-400 hover:text-white text-sm py-2.5 transition-colors"
+                              onClick={() => {
+                                setIsOpen(false)
+                                setMobileAccordion(null)
+                              }}
+                            >
+                              <item.icon className="w-4 h-4 text-blue-400/70" />
+                              {item.label}
+                            </a>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               ))}
+
+              <a
+                href="/pricing"
+                className="block text-zinc-300 hover:text-white text-sm font-medium transition-colors py-3"
+                onClick={() => setIsOpen(false)}
+              >
+                Pricing
+              </a>
+
+              <a
+                href="/contact"
+                className="block text-zinc-300 hover:text-white text-sm font-medium transition-colors py-3"
+                onClick={() => setIsOpen(false)}
+              >
+                Contact
+              </a>
+
+              <div className="pt-4 border-t border-zinc-800">
+                <a href="/user/signup" className="block bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-6 py-3.5 rounded-lg w-full transition-all shadow-lg shadow-blue-600/20 text-center">
+                  Get Free Consultation
+                </a>
+              </div>
             </div>
-            <div className="mt-8 flex flex-col gap-4">
-              <a
-                href="/setupfx24.apk"
-                download
-                className="w-full flex items-center justify-center gap-2 rounded-lg border border-green-500/50 bg-green-500/10 px-5 py-3 text-[16px] font-semibold text-green-400 transition-all hover:bg-green-500/20"
-              >
-                <Download className="w-5 h-5" />
-                Download APK
-              </a>
-              <a
-                href="/user/login"
-                className="w-full rounded-lg border border-white/20 bg-white/5 px-5 py-3 text-[16px] font-semibold text-white transition-all hover:bg-white/10 text-center"
-              >
-                Sign In
-              </a>
-              <a
-                href="/user/signup"
-                className="w-full rounded-lg bg-white px-5 py-3 text-[16px] font-semibold text-[#111111] transition-all hover:bg-opacity-90 text-center"
-              >
-                Get Started
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </nav>
   )
 }
 
 // ============ HERO COMPONENT ============
-const Hero = () => {
-  const navigate = useNavigate()
+const stats = [
+  { value: "250+", label: "Projects Delivered" },
+  { value: "50+", label: "Global Clients" },
+  { value: "98%", label: "Client Satisfaction" },
+  { value: "15+", label: "Countries Served" },
+]
 
+const Hero = () => {
   return (
-    <section className="relative w-full overflow-hidden bg-black text-white">
-      <div className="absolute inset-0 z-0">
+    <>
+    <section id="home" className="relative min-h-screen flex items-center overflow-hidden pt-24 pb-16 bg-zinc-950">
+      <div className="absolute inset-0">
         <video
           autoPlay
-          muted
           loop
+          muted
           playsInline
-          className="w-full h-full object-cover object-center"
-          poster="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/test-clones/df683367-7790-4791-bf67-54d56d7ef621-ankar-ai/assets/images/OXXnRWwOHTLxnj6fGttTq13VSI-1.png"
+          className="absolute inset-0 w-full h-full object-cover"
         >
-          <source src="/assets/setupfx%20video.mp4" type="video/mp4" />
+          <source src={setupfxVideo} type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
+        <div className="absolute inset-0 bg-black/60" />
+        <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/70 via-transparent to-zinc-950/90" />
       </div>
 
-      <div className="relative z-10 mx-auto flex min-h-screen flex-col items-center justify-center px-4 sm:px-6 pt-24 pb-12 md:px-12 lg:pt-32 lg:pb-24">
-        <div className="relative flex w-full max-w-[1200px] flex-col items-center">
-          <div className="pointer-events-none absolute -inset-x-2 -inset-y-8 sm:-inset-x-4 sm:-inset-y-12 lg:-inset-x-12 lg:-inset-y-20 hidden sm:block">
-            <div className="absolute top-0 left-0 h-1.5 w-1.5 bg-white" />
-            <div className="absolute top-0 right-0 h-1.5 w-1.5 bg-white" />
-            <div className="absolute bottom-0 left-0 h-1.5 w-1.5 bg-white" />
-            <div className="absolute bottom-0 right-0 h-1.5 w-1.5 bg-white" />
-          </div>
+      <motion.div
+        className="absolute w-[700px] h-[700px] rounded-full blur-[200px]"
+        style={{ background: "radial-gradient(circle, rgba(59,130,246,0.9) 0%, rgba(37,99,235,0.5) 50%, transparent 75%)" }}
+        animate={{
+          top: ["-20%", "-20%", "40%", "40%", "-20%"],
+          left: ["-15%", "55%", "55%", "-15%", "-15%"],
+        }}
+        transition={{
+          duration: 10,
+          repeat: Infinity,
+          ease: "linear",
+          times: [0, 0.25, 0.5, 0.75, 1],
+        }}
+      />
 
-          <a
-            href="#"
-            className="group mb-6 sm:mb-8 flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 sm:px-4 py-1.5 backdrop-blur-md transition-colors hover:bg-white/20"
-          >
-            <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase md:text-sm">
-              SetupFX24 White Label — Launch in 15 Days
-            </span>
-            <div className="flex h-4 w-4 items-center justify-center">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-3 w-3 transition-transform group-hover:translate-x-0.5"
-              >
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </div>
-          </a>
+      <div className="absolute inset-0 opacity-30"
+        style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)", backgroundSize: "100px 100px" }}
+      />
 
-          <div className="max-w-[1000px] text-center px-2">
-            <h1 className="text-[28px] sm:text-[36px] leading-[1.15] font-medium tracking-tight md:text-[56px] lg:text-[72px]">
-              SetupFX24 — Empowering Forex Brokers with White Label Solution
-            </h1>
-          </div>
-
-          <div className="mt-6 sm:mt-8 max-w-[840px] text-center px-2">
-            <p className="text-[14px] sm:text-[16px] leading-[1.6] text-white/80 md:text-[18px]">
-              Our comprehensive white-label solutions provide everything you need to launch and grow a successful forex brokerage, from a robust trading platform to a powerful CRM and dedicated support.
-            </p>
-          </div>
-
-          <div className="mt-8 sm:mt-12 flex flex-col items-center gap-3 sm:gap-4 w-full sm:w-auto sm:flex-row">
-            <a
-              href="/user/signup"
-              className="w-full sm:w-auto rounded-lg bg-white px-6 sm:px-8 py-3 sm:py-4 text-[14px] sm:text-[16px] font-bold text-black transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] text-center"
+      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 w-full">
+        <div className="max-w-6xl text-left">
+          <div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-full px-4 py-1.5 mb-6"
             >
-              Get Started
-            </a>
-            <a
-              href="#"
-              className="w-full sm:w-auto text-center rounded-lg border border-white/20 bg-white/5 px-6 sm:px-8 py-3 sm:py-4 text-[14px] sm:text-[16px] font-bold text-white backdrop-blur-sm transition-all hover:bg-white/10 active:scale-[0.98]"
+              <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+              <span className="text-blue-400 text-xs font-medium tracking-wide">Global Software & Digital Marketing Company</span>
+            </motion.div>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.1 }}
+              className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.08]"
             >
-              Learn More
-            </a>
+              <span className="text-white">Build, Scale</span>
+              <br />
+              <span className="text-white">& Grow </span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">
+                Digitally
+              </span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.3 }}
+              className="mt-6 text-zinc-400 text-lg max-w-3xl leading-relaxed"
+            >
+              Custom apps, CRM, and data-driven marketing to grow businesses digitally.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.7 }}
+              className="mt-10 flex flex-col sm:flex-row gap-4"
+            >
+              <a href="#services" className="border border-zinc-700 hover:border-zinc-500 text-white font-semibold px-8 py-3.5 rounded-lg transition-all duration-200 text-sm hover:bg-white/5 text-center">
+                Explore Services
+              </a>
+            </motion.div>
           </div>
-
-          <div className="mt-12 sm:mt-20 w-full max-w-[1000px]">
-            <div className="mb-6 sm:mb-10 text-center">
-              <h2 className="text-lg sm:text-xl md:text-2xl font-medium text-white/90">Unlock Boundless Growth with SetupFX24's White Label Solutions</h2>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8">
-              {[
-                { title: "Real-Time Trading", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
-                { title: "Deep Liquidity Access", icon: "M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" },
-                { title: "Advanced Risk Management", icon: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" },
-                { title: "Multi-Asset Support", icon: "M4 7h16M4 12h16m-7 5h7" }
-              ].map((item, i) => (
-                <div key={i} className="flex flex-col items-center text-center group">
-                  <div className="mb-3 sm:mb-4 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/5 border border-white/10 transition-colors group-hover:bg-white/10">
-                    <svg className="h-5 w-5 sm:h-6 sm:w-6 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                      <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
-                    </svg>
-                  </div>
-                  <span className="text-xs sm:text-sm font-medium text-white/60">{item.title}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="absolute top-0 bottom-0 left-4 sm:left-12 w-[1px] bg-white opacity-5 lg:left-24 hidden sm:block" />
-        <div className="absolute top-0 bottom-0 right-4 sm:right-12 w-[1px] bg-white opacity-5 lg:right-24 hidden sm:block" />
-      </div>
-
-      <div className="absolute bottom-0 left-0 h-32 w-full bg-gradient-to-t from-black to-transparent pointer-events-none" />
-    </section>
-  )
-}
-
-// ============ DASHBOARD PREVIEW COMPONENT ============
-const DashboardPreview = () => {
-  return (
-    <section className="relative w-full bg-black py-20 px-6 md:px-12 overflow-hidden border-y border-gray-800">
-      <div className="mx-auto max-w-[1200px]">
-        <div className="relative rounded-2xl border border-gray-800 bg-gray-900 p-2 shadow-2xl transition-transform duration-500 hover:scale-[1.01]">
-          <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl">
-            <img
-              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/Screenshot-2025-10-30-at-11-1766736547869.webp?width=8000&height=8000&resize=contain"
-              alt="SetupFX24 Trading Dashboard Preview"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div className="absolute -top-4 -right-4 h-24 w-24 rounded-full bg-white/5 blur-3xl" />
-          <div className="absolute -bottom-4 -left-4 h-24 w-24 rounded-full bg-white/5 blur-3xl" />
         </div>
       </div>
     </section>
-  )
-}
 
-// ============ PLATFORM PROCESS COMPONENT ============
-const PlatformProcess = () => {
-  const steps = [
-    {
-      title: "Discovery & Branding",
-      description: "Initial consultation to define your brand identity and business requirements.",
-      image: "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/test-clones/df683367-7790-4791-bf67-54d56d7ef621-ankar-ai/assets/images/2fNNZEzL755aVuKeUK1tPzTBg88-11.png",
-    },
-    {
-      title: "Platform & CRM Setup",
-      description: "Technical configuration of your branded trading platform and enterprise CRM.",
-      image: "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/test-clones/df683367-7790-4791-bf67-54d56d7ef621-ankar-ai/assets/images/uWRzJkLGsaA1LVpb42bqe5TptPc-12.png",
-    },
-    {
-      title: "Website & Terminals",
-      description: "Development of your professional brokerage website and multi-platform terminals.",
-      image: "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/test-clones/df683367-7790-4791-bf67-54d56d7ef621-ankar-ai/assets/images/9fg8VMqWWHp79dQnSXdcvnDTLc-13.png",
-    },
-    {
-      title: "Testing & Training",
-      description: "Rigorous quality assurance and comprehensive training for your administrative team.",
-      image: "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/test-clones/df683367-7790-4791-bf67-54d56d7ef621-ankar-ai/assets/images/p6LHitJjdmwe99AkfKpxp2klltM-14.png",
-    },
-    {
-      title: "Launch & Support",
-      description: "Official launch of your brokerage with ongoing expert technical support.",
-      image: "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/test-clones/df683367-7790-4791-bf67-54d56d7ef621-ankar-ai/assets/images/2fNNZEzL755aVuKeUK1tPzTBg88-11.png",
-    }
-  ]
-
-  return (
-    <section id="our-process" className="bg-white py-16 sm:py-20 md:py-[120px] overflow-hidden">
-      <div className="max-w-[1248px] px-4 sm:px-6 mx-auto">
-        <div className="mb-8 sm:mb-[40px]">
-          <div className="max-w-[700px]">
-            <h2 className="text-[28px] sm:text-[36px] md:text-[48px] mb-4 sm:mb-6 text-black leading-[1.2] font-medium">
-              Setup Your White Label in 15 Days
-            </h2>
-            <p className="text-[14px] sm:text-[16px] md:text-[18px] text-black/70 leading-[1.6]">
-              Our comprehensive package delivers everything you need to launch a successful brokerage. We provide a fully branded trading platform, enterprise-grade Forex CRM, a professional website, and both mobile and web terminals, all backed by our ongoing expert support.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-4">
-          {steps.map((step, index) => (
-            <div key={index} className="flex flex-col group transition-all duration-500 hover:z-10">
-              <div className="relative aspect-[4/2.5] mb-6 rounded-lg overflow-hidden border border-gray-200 shadow-sm transition-all duration-500 ease-out group-hover:shadow-[0_20px_40px_rgba(255,77,77,0.15)] group-hover:border-[#ff4d4d]/40 group-hover:-translate-y-3 group-hover:scale-[1.03]">
-                <img
-                  src={step.image}
-                  alt={step.title}
-                  className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                />
-              </div>
-              <div className="transition-all duration-500 ease-out group-hover:translate-y-[-8px]">
-                <h4 className="text-[15px] font-semibold text-black mb-3 group-hover:text-[#ff4d4d] transition-colors duration-300">
-                  {step.title}
-                </h4>
-                <p className="text-[14px] text-black/60 leading-[1.6]">
-                  {step.description}
-                </p>
-              </div>
+    <section className="relative bg-zinc-950 border-t border-zinc-800/50 py-12">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.9 }}
+          className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8"
+        >
+          {stats.map((stat) => (
+            <div key={stat.label} className="text-center">
+              <div className="text-3xl md:text-4xl font-bold text-white">{stat.value}</div>
+              <div className="text-zinc-500 text-sm mt-1">{stat.label}</div>
             </div>
           ))}
-        </div>
+        </motion.div>
+      </div>
+    </section>
+
+    <section className="relative bg-zinc-950 py-16">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, rotateX: 90 }}
+          animate={{ opacity: 1, rotateX: 0 }}
+          transition={{ duration: 1, delay: 1.1, ease: "easeOut" }}
+          whileHover={{ rotateY: 10, scale: 1.02 }}
+          className="cursor-pointer"
+          style={{ perspective: 1200 }}
+        >
+          <img
+            src={terminalImg}
+            alt="Terminal"
+            className="w-full h-auto rounded-2xl border border-zinc-800/50 shadow-2xl shadow-blue-500/5 transition-shadow duration-300 hover:shadow-blue-500/20"
+          />
+        </motion.div>
+      </div>
+    </section>
+    </>
+  )
+}
+
+// ============ TRUST STRIP COMPONENT ============
+const trustPoints = [
+  { icon: Code2, label: "Custom Development" },
+  { icon: TrendingUp, label: "Growth Marketing" },
+  { icon: ShieldCheck, label: "Secure & Reliable" },
+  { icon: Zap, label: "Fast Delivery" },
+  { icon: Globe, label: "Global Reach" },
+]
+
+const TrustStrip = () => {
+  return (
+    <section className="relative py-12 border-y border-zinc-800/60 bg-zinc-900/40">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="flex flex-col md:flex-row items-center justify-between gap-8"
+        >
+          <div className="text-center md:text-left flex-shrink-0">
+            <p className="text-white font-semibold text-lg">Trusted by Businesses Worldwide</p>
+            <p className="text-zinc-500 text-sm mt-1">From startups to global enterprises</p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10">
+            {trustPoints.map((point, index) => (
+              <motion.div
+                key={point.label}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: index * 0.1 }}
+                className="flex items-center gap-2.5"
+              >
+                <point.icon className="w-5 h-5 text-blue-400" />
+                <span className="text-zinc-300 text-sm font-medium">{point.label}</span>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
       </div>
     </section>
   )
 }
 
-// ============ FEATURE CARD COMPONENT ============
-const FeatureCard = ({ title, description, icon: Icon }) => (
-  <div className="flex flex-col p-4 rounded-xl border transition-all duration-300 bg-[#0f1115] border-white/10 hover:border-white/20">
-    <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center mb-3 border border-white/10">
-      <Icon className="w-4 h-4 text-white" strokeWidth={1.5} />
-    </div>
-    <h4 className="text-[16px] font-semibold text-white mb-1">{title}</h4>
-    <p className="text-[13px] leading-relaxed text-gray-400">{description}</p>
-  </div>
-)
+// ============ SOLUTION OVERVIEW (SERVICES) COMPONENT ============
+const services = [
+  {
+    icon: Code2,
+    title: "Software Development",
+    description: "Custom software solutions built with modern technologies, tailored to solve your unique business challenges.",
+  },
+  {
+    icon: Globe,
+    title: "Web Application Development",
+    description: "Scalable, responsive web applications using React, Next.js, and modern frameworks for optimal performance.",
+  },
+  {
+    icon: Smartphone,
+    title: "Mobile App Development",
+    description: "Native and cross-platform mobile apps for iOS and Android that deliver seamless user experiences.",
+  },
+  {
+    icon: Database,
+    title: "CRM & Business Systems",
+    description: "Custom CRM, ERP, and admin panel development to streamline your operations and boost productivity.",
+  },
+  {
+    icon: Palette,
+    title: "UI / UX Design",
+    description: "User-centered design that converts visitors into customers with intuitive interfaces and beautiful aesthetics.",
+  },
+]
 
-// ============ FEATURED MODULES COMPONENT ============
-const FeaturedModules = () => {
-  const features = [
-    {
-      title: "Real-Time Trading",
-      description: "Empower your clients with a platform that delivers split-second execution and live market data.",
-      icon: Zap,
-    },
-    {
-      title: "Deep Liquidity Access",
-      description: "Connect to a vast network of liquidity providers, ensuring competitive spreads and reliable order fulfillment.",
-      icon: Brain,
-    },
-    {
-      title: "Advanced Risk Management",
-      description: "Utilize sophisticated tools to monitor exposure, manage risk, and protect your brokerage from market volatility.",
-      icon: ShieldCheck,
-    },
-    {
-      title: "Multi-Asset Support",
-      description: "Offer a diverse range of trading instruments, including forex, equities, commodities, and cryptocurrencies.",
-      icon: Bot,
-    }
-  ]
+const containerVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.12 } },
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 25 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+}
+
+const SolutionOverview = () => {
+  return (
+    <section id="services" className="relative py-24 overflow-hidden bg-zinc-950">
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
+
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+          className="text-center mb-16"
+        >
+          <span className="text-xs tracking-[0.2em] uppercase text-blue-400 font-medium">Our Services</span>
+          <h2 className="text-3xl md:text-5xl font-bold mt-4 tracking-tight text-white">
+            Software Development Services
+          </h2>
+          <p className="mt-4 text-zinc-400 text-lg max-w-2xl mx-auto">
+            From concept to deployment — we build custom applications that power your business forward.
+          </p>
+        </motion.div>
+
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          {services.map((item) => (
+            <motion.div
+              key={item.title}
+              variants={itemVariants}
+              className="group relative rounded-xl border border-zinc-800 bg-zinc-900/50 p-7 hover:border-blue-500/30 hover:bg-zinc-900 transition-all duration-300 cursor-pointer"
+            >
+              <div className="w-12 h-12 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-5 group-hover:bg-blue-500/20 transition-colors">
+                <item.icon className="w-6 h-6 text-blue-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
+              <p className="text-zinc-400 text-sm leading-relaxed">{item.description}</p>
+              <div className="mt-5 text-blue-400 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                Learn more <span className="group-hover:translate-x-1 transition-transform inline-block">→</span>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+// ============ CORE PRODUCTS (DIGITAL MARKETING) COMPONENT ============
+const tabs = [
+  {
+    id: "strategy",
+    icon: Target,
+    label: "Marketing Strategy",
+    title: "Data-Driven Marketing Strategy",
+    description: "We craft comprehensive marketing strategies backed by data and market research. From audience analysis to campaign planning, we build roadmaps that align with your business goals and deliver measurable ROI.",
+    features: ["Market research & competitor analysis", "Target audience identification", "Multi-channel campaign planning", "KPI setting & performance tracking", "Quarterly strategy reviews & optimization"],
+    metric: { label: "Avg. ROI Increase", value: "+340%", sub: "for our clients" },
+  },
+  {
+    id: "seo",
+    icon: Search,
+    label: "SEO",
+    title: "Search Engine Optimization (SEO)",
+    description: "Dominate search results with our proven SEO strategies. We optimize your website for both search engines and users, driving organic traffic that converts into customers.",
+    features: ["Technical SEO audit & optimization", "Keyword research & content strategy", "On-page & off-page SEO", "Local SEO & Google Business Profile", "Monthly reporting & rank tracking"],
+    metric: { label: "Avg. Organic Growth", value: "+180%", sub: "within 6 months" },
+  },
+  {
+    id: "ads",
+    icon: Megaphone,
+    label: "Paid Ads",
+    title: "Paid Advertising (Google & Social)",
+    description: "Maximize your ad spend with expertly managed campaigns across Google Ads, Facebook, Instagram, LinkedIn, and more. We focus on high-intent audiences to drive quality leads and conversions.",
+    features: ["Google Ads (Search, Display, Shopping)", "Facebook & Instagram Ads", "LinkedIn Ads for B2B", "Retargeting & lookalike audiences", "A/B testing & conversion optimization"],
+    metric: { label: "Avg. ROAS", value: "5.2x", sub: "return on ad spend" },
+  },
+  {
+    id: "social",
+    icon: Share2,
+    label: "Social Media",
+    title: "Social Media Marketing",
+    description: "Build a powerful brand presence across all major social platforms. We create engaging content, manage communities, and run campaigns that grow your audience and drive engagement.",
+    features: ["Content calendar & strategy", "Community management & engagement", "Influencer partnership management", "Social listening & brand monitoring", "Performance analytics & reporting"],
+    metric: { label: "Avg. Engagement", value: "+250%", sub: "growth rate" },
+  },
+  {
+    id: "content",
+    icon: FileText,
+    label: "Content Marketing",
+    title: "Content Marketing",
+    description: "Attract, engage, and convert your audience with high-quality content. From blog posts and whitepapers to video scripts and email campaigns, we create content that drives results.",
+    features: ["Blog writing & thought leadership", "Email marketing & automation", "Video content strategy", "Whitepaper & case study creation", "Content distribution & promotion"],
+    metric: { label: "Avg. Lead Growth", value: "+200%", sub: "through content" },
+  },
+]
+
+const CoreProducts = () => {
+  const [activeTab, setActiveTab] = useState("strategy")
+  const active = tabs.find((t) => t.id === activeTab)
 
   return (
-    <section className="bg-white py-16 sm:py-20 md:py-[120px] overflow-hidden w-full">
-      <div className="mx-auto px-4 sm:px-6 md:px-8 max-w-[1200px]">
-        <div className="mb-8 sm:mb-12">
-          <h2 className="text-[28px] sm:text-[36px] md:text-[48px] font-medium leading-[1.2] tracking-[-0.01em] text-black max-w-[974px]">
-            Unlock Boundless Growth with SetupFX24's White Label Solutions
+    <section id="marketing" className="relative py-24 overflow-hidden bg-zinc-950">
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
+
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+          className="text-center mb-14"
+        >
+          <span className="text-xs tracking-[0.2em] uppercase text-blue-400 font-medium">Digital Marketing</span>
+          <h2 className="text-3xl md:text-5xl font-bold mt-4 tracking-tight text-white">
+            Grow Your Business Online
           </h2>
+          <p className="mt-4 text-zinc-400 text-lg max-w-2xl mx-auto">
+            Data-driven marketing strategies that attract, engage, and convert your ideal customers.
+          </p>
+        </motion.div>
+
+        <div className="flex flex-wrap justify-center gap-2 mb-12">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                activeTab === tab.id
+                  ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
+                  : "bg-zinc-800/50 text-zinc-400 hover:bg-zinc-800 hover:text-white border border-zinc-800"
+              }`}
+            >
+              <tab.icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          ))}
         </div>
 
-        <div className="flex flex-col gap-12 md:gap-[100px]">
-          <div className="flex flex-col md:flex-row items-center justify-center gap-8 lg:gap-12">
-            <div className="flex-1 max-w-[640px] w-full">
-              <div className="flex flex-col">
-                <p className="text-[14px] sm:text-[16px] md:text-[18px] leading-[1.6] text-black/80 mb-6 max-w-[600px]">
-                  Establish a strong market presence with our comprehensive white label solutions, designed to provide brokers with the tools they need to succeed.
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  {features.map((feature, index) => (
-                    <FeatureCard key={index} {...feature} />
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4 }}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+          >
+            <div>
+              <h3 className="text-2xl md:text-3xl font-bold text-white">{active.title}</h3>
+              <p className="mt-4 text-zinc-400 leading-relaxed">{active.description}</p>
+              <ul className="mt-6 space-y-3">
+                {active.features.map((feature) => (
+                  <li key={feature} className="flex items-center gap-3">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />
+                    <span className="text-zinc-300 text-sm">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              <a href="#contact" className="mt-8 inline-block bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200 shadow-lg shadow-blue-600/20 text-sm">
+                Get Free Consultation
+              </a>
+            </div>
+
+            <div className="relative rounded-xl overflow-hidden border border-zinc-800 bg-zinc-900/80 shadow-2xl">
+              <div className="flex items-center gap-2 px-4 py-3 bg-zinc-900 border-b border-zinc-800">
+                <div className="flex gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
+                </div>
+                <div className="flex-1 mx-4">
+                  <div className="bg-zinc-800 rounded px-3 py-1 text-[10px] text-zinc-500 text-center">
+                    {active.label} — Analytics Dashboard
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 space-y-5">
+                <div className="text-center py-6 bg-zinc-800/30 rounded-xl border border-zinc-700/30">
+                  <div className="text-xs text-zinc-500 uppercase tracking-wider">{active.metric.label}</div>
+                  <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600 mt-2">
+                    {active.metric.value}
+                  </div>
+                  <div className="text-xs text-zinc-400 mt-2">{active.metric.sub}</div>
+                </div>
+                <div className="h-28 bg-zinc-800/50 rounded-lg relative overflow-hidden">
+                  <svg className="w-full h-full" viewBox="0 0 400 110" preserveAspectRatio="none">
+                    <defs>
+                      <linearGradient id={`mktGrad-${activeTab}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="rgba(59,130,246,0.25)" />
+                        <stop offset="100%" stopColor="rgba(59,130,246,0)" />
+                      </linearGradient>
+                    </defs>
+                    <path d="M0,90 Q50,85 100,70 T200,50 T300,25 T400,15" fill="none" stroke="#3b82f6" strokeWidth="2" />
+                    <path d="M0,90 Q50,85 100,70 T200,50 T300,25 T400,15 L400,110 L0,110 Z" fill={`url(#mktGrad-${activeTab})`} />
+                  </svg>
+                  <div className="absolute top-3 left-3 text-[10px] text-zinc-500">Performance Over Time</div>
+                  <div className="absolute top-3 right-3 text-[10px] text-green-400 font-mono">Trending Up</div>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  {["Impressions", "Clicks", "Conversions"].map((label, i) => (
+                    <div key={label} className="bg-zinc-800/50 rounded-lg px-3 py-2.5 text-center">
+                      <div className="text-[9px] text-zinc-500">{label}</div>
+                      <div className="text-sm text-white font-semibold mt-1">
+                        {i === 0 ? "1.2M" : i === 1 ? "84K" : "12.4K"}
+                      </div>
+                      <div className="text-[9px] text-green-400 mt-0.5">
+                        +{20 + i * 15}%
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
             </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </section>
+  )
+}
 
-            <div className="flex-1 relative w-full aspect-[1.4/1.15] max-w-[500px] md:max-w-[700px]">
-              <div className="absolute inset-0 blur-[100px] opacity-30 rounded-full bg-blue-500/40" />
-              <div className="relative w-full h-full rounded-2xl border border-gray-200 overflow-hidden shadow-2xl bg-white">
-                <img
-                  src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/solution-problem-solving-share-ideas-concept-resized-1766750890282.jpg?width=8000&height=8000&resize=contain"
-                  alt="CRM & API Integration Solutions"
-                  className="w-full h-full object-contain p-4"
-                />
-                <div className="absolute inset-0 bg-gradient-to-tr from-black/5 to-transparent pointer-events-none" />
-              </div>
+// ============ BACK OFFICE (SOLUTIONS) COMPONENT ============
+const solutions = [
+  { icon: Settings, title: "Custom Software Solutions", desc: "Bespoke software designed to solve your unique business challenges with scalable, maintainable architecture." },
+  { icon: Cpu, title: "Business Automation", desc: "Automate repetitive workflows, reduce manual errors, and boost team productivity with smart automation." },
+  { icon: LayoutDashboard, title: "CRM & Admin Panels", desc: "Centralized dashboards for managing clients, data, operations, and team collaboration in one place." },
+  { icon: Building2, title: "Enterprise Applications", desc: "Large-scale, mission-critical systems built for performance, security, and enterprise-grade reliability." },
+]
+
+const BackOffice = () => {
+  return (
+    <section id="solutions" className="relative py-24 overflow-hidden bg-zinc-950">
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
+
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+          >
+            <span className="text-xs tracking-[0.2em] uppercase text-blue-400 font-medium">Solutions</span>
+            <h2 className="text-3xl md:text-4xl font-bold mt-4 tracking-tight text-white leading-tight">
+              Tailored Solutions for Every Business Need
+            </h2>
+            <p className="mt-4 text-zinc-400 leading-relaxed">
+              We don't believe in one-size-fits-all. Our solutions are custom-built to address your specific
+              challenges, whether you need a complete digital overhaul or targeted improvements.
+            </p>
+
+            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {solutions.map((item, index) => (
+                <motion.div
+                  key={item.title}
+                  initial={{ opacity: 0, y: 15 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                  className="flex items-start gap-3 p-4 rounded-lg border border-zinc-800 bg-zinc-900/50 hover:border-blue-500/20 transition-colors"
+                >
+                  <item.icon className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-white font-semibold text-sm">{item.title}</h4>
+                    <p className="text-zinc-400 text-xs mt-1 leading-relaxed">{item.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
             </div>
-          </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+          >
+            <img
+              src="/chart.png"
+              alt="Solutions Dashboard"
+              className="w-full h-auto rounded-xl border border-zinc-800 shadow-2xl"
+            />
+          </motion.div>
         </div>
       </div>
     </section>
   )
 }
 
-// ============ KEY FEATURES COMPONENT ============
-const KeyFeatures = () => {
-  const features = [
-    { icon: Filter, title: "15-day Swift Setup" },
-    { icon: Target, title: "Revenue Optimization" },
-    { icon: Star, title: "Competitive Pricing" },
-    { icon: Lock, title: "Advanced Risk Management" },
-    { icon: Filter, title: "Expert Team Support" },
-    { icon: Target, title: "Comprehensive Infrastructure" },
-    { icon: Star, title: "Trading Platforms" },
-    { icon: Lock, title: "CRM Systems" },
-    { icon: Target, title: "Flexible Packages" },
-    { icon: Star, title: "Cost-Effectiveness" },
-    { icon: Lock, title: "Branded Mobile Apps" }
-  ]
+// ============ IB PARTNER (INDUSTRIES) COMPONENT ============
+const industries = [
+  {
+    icon: Rocket,
+    title: "Startups",
+    description: "MVP development, rapid prototyping, and scalable architecture to help you validate ideas fast and grow with confidence.",
+    features: ["MVP in 4-6 weeks", "Scalable tech stack", "Growth marketing"],
+  },
+  {
+    icon: Building,
+    title: "Small & Medium Businesses",
+    description: "Custom web apps, CRM systems, and digital marketing strategies designed to streamline operations and accelerate growth.",
+    features: ["Custom business apps", "CRM & automation", "SEO & paid ads"],
+  },
+  {
+    icon: Building2,
+    title: "Enterprises",
+    description: "Complex enterprise systems, integrations, and large-scale applications built for performance, security, and compliance.",
+    features: ["Enterprise-grade systems", "API integrations", "24/7 support"],
+  },
+  {
+    icon: Crown,
+    title: "Global Brands",
+    description: "World-class digital experiences, multi-market campaigns, and technology solutions that match the scale of your ambition.",
+    features: ["Multi-market strategy", "Brand-level UX", "Global campaigns"],
+  },
+]
 
+const IBPartner = () => {
   return (
-    <section className="bg-[#0f1115] py-16 sm:py-20 md:py-24">
-      <div className="mx-auto px-4 sm:px-6 max-w-[1200px]">
-        <div className="flex flex-col items-center text-center mb-10 sm:mb-16">
-          <div className="bg-white/5 text-indigo-400 text-[11px] sm:text-[12px] font-semibold px-3 sm:px-4 py-1.5 rounded-full mb-4 sm:mb-6 border border-white/10">
-            Key Features
-          </div>
-          <h2 className="text-[28px] sm:text-[36px] md:text-[48px] font-semibold text-white leading-[1.2] mb-4 sm:mb-6 tracking-tight">
-            Features of SetupFX24 White-Label Solutions
-          </h2>
-          <p className="text-gray-400 text-[14px] sm:text-[16px] md:text-[18px] max-w-[800px] leading-[1.6]">
-            Experience revolutionary Forex brokerage excellence with our all-in-one solution. We provide a comprehensive suite of tools and services to launch and scale your brokerage.
-          </p>
-        </div>
+    <section id="industries" className="relative py-24 overflow-hidden bg-zinc-950/50">
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-6 sm:gap-y-8 gap-x-8 sm:gap-x-12 max-w-[1000px] mx-auto">
-          {features.map((feature, index) => (
-            <div key={index} className="flex items-center gap-4">
-              <div className="flex-shrink-0 w-6 h-6 bg-white/5 rounded flex items-center justify-center border border-white/10">
-                <feature.icon className="w-3.5 h-3.5 text-white" />
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+          className="text-center mb-16"
+        >
+          <span className="text-xs tracking-[0.2em] uppercase text-blue-400 font-medium">Industries We Serve</span>
+          <h2 className="text-3xl md:text-5xl font-bold mt-4 tracking-tight text-white">
+            Solutions for Every Stage of Growth
+          </h2>
+          <p className="mt-4 text-zinc-400 text-lg max-w-2xl mx-auto">
+            Whether you're a startup with a big idea or a global brand scaling operations, we have the expertise to deliver.
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {industries.map((card, index) => (
+            <motion.div
+              key={card.title}
+              initial={{ opacity: 0, y: 25 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.12 }}
+              className="group rounded-xl border border-zinc-800 bg-zinc-900/60 p-7 hover:border-blue-500/30 transition-all duration-300"
+            >
+              <div className="w-12 h-12 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-5 group-hover:bg-blue-500/20 transition-colors">
+                <card.icon className="w-6 h-6 text-blue-400" />
               </div>
-              <span className="text-white text-[18px] font-medium">
-                {feature.title}
-              </span>
-            </div>
+              <h3 className="text-lg font-semibold text-white mb-3">{card.title}</h3>
+              <p className="text-zinc-400 text-sm leading-relaxed mb-4">{card.description}</p>
+              <ul className="space-y-1.5">
+                {card.features.map((f) => (
+                  <li key={f} className="flex items-center gap-2 text-xs text-zinc-500">
+                    <div className="w-1 h-1 rounded-full bg-blue-400 flex-shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -472,344 +888,625 @@ const KeyFeatures = () => {
   )
 }
 
-// ============ PRICING COMPONENT ============
-const Pricing = () => {
-  const navigate = useNavigate()
-
+// ============ ABOUT SECTION COMPONENT ============
+const AboutSection = () => {
   return (
-    <section id="pricing" className="bg-white py-16 sm:py-20 md:py-24">
-      <div className="mx-auto px-4 sm:px-6 max-w-[1200px]">
-        <div className="text-center mb-10 sm:mb-16">
-          <h2 className="text-[28px] sm:text-[36px] md:text-[48px] font-bold text-gray-900 mb-3 sm:mb-4 tracking-tight">
-            Simple, Transparent Pricing
-          </h2>
-          <p className="text-gray-600 text-[14px] sm:text-[16px] md:text-[18px]">
-            Get everything you need to launch your brokerage for one flat monthly fee.
-          </p>
-        </div>
+    <section id="about" className="relative py-24 overflow-hidden bg-zinc-950">
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-[900px] mx-auto">
-          <div className="bg-white rounded-[20px] sm:rounded-[24px] p-6 sm:p-10 border border-gray-100 shadow-xl flex flex-col h-full transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl">
-            <div className="text-center mb-6 sm:mb-8">
-              <span className="text-gray-500 text-[12px] sm:text-[14px] font-medium uppercase tracking-wider">One-Time Setup</span>
-              <div className="flex items-baseline justify-center gap-2 mt-3 sm:mt-4">
-                <span className="text-[36px] sm:text-[48px] font-bold text-[#ff4d4d]">$10,000</span>
-                <span className="text-gray-500 text-[14px] sm:text-[16px]">setup fee</span>
-              </div>
-            </div>
-
-            <ul className="space-y-3 sm:space-y-4 mb-8 sm:mb-10 flex-grow">
-              {[
-                "Your Branded Trading Platform",
-                "Fully Integrated Forex CRM",
-                "Professional Brokerage Website",
-                "Ongoing Technical Support",
-                "Mobile & Web Terminals"
-              ].map((item, i) => (
-                <li key={i} className="flex items-center gap-3 text-gray-700">
-                  <div className="flex-shrink-0 w-5 h-5 bg-[#ff4d4d]/10 rounded-full flex items-center justify-center">
-                    <CheckCircle2 className="w-3 h-3 text-[#ff4d4d]" />
-                  </div>
-                  <span className="text-[15px]">{item}</span>
-                </li>
-              ))}
-            </ul>
-
-            <a 
-              href="/user/signup"
-              className="w-full bg-[#ff4d4d] hover:bg-[#e63946] text-white py-4 rounded-xl text-[16px] font-semibold transition-all duration-200 block text-center"
-            >
-              Get Started
-            </a>
-            <p className="text-center text-gray-400 text-[12px] mt-6">
-              Flexible pricing tailored to your needs
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+          >
+            <span className="text-xs tracking-[0.2em] uppercase text-blue-400 font-medium">Why SetupFX24</span>
+            <h2 className="text-3xl md:text-4xl font-bold mt-4 tracking-tight text-white leading-tight">
+              Your Partner for Software Development & Digital Growth
+            </h2>
+            <p className="mt-6 text-zinc-400 text-base leading-relaxed">
+              SetupFX24 is a global software development and digital marketing company helping businesses
+              build, scale, and grow in the digital world. We combine cutting-edge technology with
+              data-driven marketing strategies to deliver measurable results.
             </p>
-          </div>
+            <p className="mt-4 text-zinc-400 text-base leading-relaxed">
+              From custom web and mobile applications to CRM systems and full-funnel digital marketing,
+              we provide end-to-end solutions that transform how businesses operate and connect with
+              their customers.
+            </p>
 
-          <div className="relative group h-full transition-all duration-300 hover:-translate-y-2">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#ff4d4d] to-[#ff8080] rounded-[20px] sm:rounded-[24px] blur opacity-10 group-hover:opacity-30 transition duration-500"></div>
-            <div className="relative bg-white rounded-[20px] sm:rounded-[24px] p-6 sm:p-10 border border-[#ff4d4d]/10 shadow-2xl flex flex-col h-full hover:shadow-[0_20px_40px_rgba(255,77,77,0.15)] transition-shadow duration-300">
-              <div className="text-center mb-6 sm:mb-8">
-                <span className="text-gray-500 text-[12px] sm:text-[14px] font-medium uppercase tracking-wider">For 1000 Users</span>
-                <div className="mt-3 sm:mt-4 space-y-1">
-                  <div className="flex items-baseline justify-center gap-2">
-                    <span className="text-[32px] sm:text-[40px] font-bold text-[#ff4d4d]">$1,000</span>
-                    <span className="text-gray-500 text-[14px] sm:text-[16px]">setup</span>
-                  </div>
-                  <div className="flex items-baseline justify-center gap-2">
-                    <span className="text-[36px] sm:text-[48px] font-bold text-[#ff4d4d]">$500</span>
-                    <span className="text-gray-500 text-[14px] sm:text-[16px]">/month</span>
-                  </div>
+            <div className="mt-8 space-y-4">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0">
+                  <Target className="w-5 h-5 text-blue-400" />
                 </div>
-              </div>
-
-              <ul className="space-y-3 sm:space-y-4 mb-8 sm:mb-10 flex-grow">
-                {[
-                  "Branded Trading Platform",
-                  "Web Development & mobile responsive app",
-                  "Forex CRM",
-                  "Liquidity Manager",
-                  "A-book B-book Management",
-                  "$500 monthly License Fees for 1000 users fixed"
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 text-gray-700">
-                    <div className="flex-shrink-0 w-5 h-5 bg-[#ff4d4d]/10 rounded-full flex items-center justify-center">
-                      <CheckCircle2 className="w-3 h-3 text-[#ff4d4d]" />
-                    </div>
-                    <span className="text-[15px]">{item}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <a 
-                href="/user/signup"
-                className="w-full bg-[#ff4d4d] hover:bg-[#e63946] text-white py-4 rounded-xl text-[16px] font-semibold shadow-[0_10px_30px_rgba(255,77,77,0.2)] transition-all duration-200 block text-center"
-              >
-                Get Started
-              </a>
-              <p className="text-center text-gray-400 text-[12px] mt-6">
-                Perfect for growing brokerages
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ============ CRM SOLUTIONS COMPONENT ============
-const CrmSolutions = () => {
-  return (
-    <section className="bg-white py-16 sm:py-20 md:py-24 border-t border-gray-100">
-      <div className="mx-auto px-4 sm:px-6 max-w-[1200px]">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-16 items-start">
-          <div className="order-2 lg:order-1">
-            <div className="mb-8 sm:mb-12">
-              <h2 className="text-[28px] sm:text-[36px] md:text-[48px] font-bold text-gray-900 leading-tight mb-4 sm:mb-6 tracking-tight">
-                CRM & API Integration Solutions
-              </h2>
-              <p className="text-gray-600 text-[14px] sm:text-[16px] md:text-[18px] leading-relaxed max-w-[540px]">
-                Contact us to explore how our CRM and API integration can empower your business.
-              </p>
-            </div>
-
-            <div className="w-full h-px bg-gray-200 mb-8 sm:mb-12" />
-
-            <div className="mb-8 sm:mb-12">
-              <h3 className="text-[20px] sm:text-[24px] font-bold text-gray-900 mb-4 sm:mb-6">What is a CRM?</h3>
-              <p className="text-gray-600 text-[14px] sm:text-[16px] leading-relaxed mb-6 sm:mb-8 max-w-[540px]">
-                A CRM (Customer Relationship Management) system is a technology for managing all your company's relationships and interactions with customers and potential customers. The goal is simple: Improve business relationships to grow your business.
-              </p>
-              
-              <ul className="space-y-4">
-                {[
-                  "Streamline Client Data",
-                  "Optimize Communication",
-                  "Improve Client Experience"
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 group">
-                    <div className="flex-shrink-0 w-6 h-6 bg-[#ff4d4d]/10 rounded-full flex items-center justify-center transition-colors group-hover:bg-[#ff4d4d]/20">
-                      <CheckCircle2 className="w-4 h-4 text-[#ff4d4d]" />
-                    </div>
-                    <span className="text-gray-700 font-medium">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-[20px] sm:text-[24px] font-bold text-gray-900 mb-6 sm:mb-8">
-                Explore Our Powerful CRM and API Solutions
-              </h3>
-              
-              <div className="space-y-3 sm:space-y-4">
-                {[
-                  {
-                    icon: Activity,
-                    title: "Real-Time Data Access",
-                    desc: "Access comprehensive client data in real-time to make informed decisions."
-                  },
-                  {
-                    icon: Users,
-                    title: "Efficient Partner Collaboration",
-                    desc: "Enable seamless collaboration with introducing brokers and affiliates through our integrated portal."
-                  },
-                  {
-                    icon: Code,
-                    title: "Integrated Trading with API",
-                    desc: "Connect your trading platform for a unified client experience and streamlined operations."
-                  }
-                ].map((item, i) => (
-                  <div key={i} className="bg-[#1a1a1a] p-4 sm:p-6 rounded-[16px] sm:rounded-[24px] flex items-start gap-4 sm:gap-6 transition-all duration-300 hover:translate-x-2 hover:shadow-xl group">
-                    <div className="flex-shrink-0 w-10 h-10 sm:w-14 sm:h-14 bg-white/5 rounded-xl sm:rounded-2xl flex items-center justify-center border border-white/10 transition-colors group-hover:border-[#ff4d4d]/30 group-hover:bg-[#ff4d4d]/5">
-                      <item.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                    </div>
-                    <div>
-                      <h4 className="text-white text-[16px] sm:text-[18px] font-semibold mb-1 sm:mb-2">{item.title}</h4>
-                      <p className="text-gray-400 text-[13px] sm:text-[15px] leading-relaxed">{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="order-1 lg:order-2 relative lg:sticky lg:top-32">
-            <div className="relative aspect-square md:aspect-video lg:aspect-square bg-[#0a0c10] rounded-[24px] sm:rounded-[40px] overflow-hidden border border-gray-800 shadow-2xl p-4 sm:p-6 md:p-12">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#1a1a1a] via-transparent to-transparent opacity-60" />
-              
-              <div className="relative bg-white rounded-3xl p-6 shadow-2xl mb-6 transform -rotate-1 group hover:rotate-0 transition-all duration-500 border border-gray-100">
-                <div className="flex justify-between items-center mb-8">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100">
-                      <Globe className="w-5 h-5 text-[#ff4d4d]" />
-                    </div>
-                    <div>
-                      <div className="text-[12px] text-gray-400 font-bold uppercase tracking-wider">Symbol</div>
-                      <div className="font-bold text-gray-900 text-lg">AAPL <span className="text-gray-400 font-medium text-sm">NASDAQ</span></div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-[24px] font-bold text-gray-900">189.43</div>
-                    <div className="text-green-500 text-sm font-semibold">+2.45 (1.31%)</div>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <div className="h-2 w-full bg-gray-50 rounded-full overflow-hidden">
-                      <div className="h-full w-[70%] bg-[#ff4d4d]" />
-                    </div>
-                    <div className="h-2 w-2/3 bg-gray-50 rounded-full overflow-hidden">
-                      <div className="h-full w-[40%] bg-blue-500" />
-                    </div>
-                    <div className="h-2 w-1/2 bg-gray-50 rounded-full" />
-                  </div>
-                  <div className="flex flex-col justify-end gap-2">
-                    <div className="h-8 w-full bg-gray-900 rounded-lg" />
-                    <div className="h-8 w-full bg-[#ff4d4d] rounded-lg" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
-                <div className="bg-[#1a1a1a] rounded-3xl p-6 border border-white/10 shadow-2xl transform translate-x-4 md:translate-x-0 transition-transform duration-500 hover:scale-105">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/10">
-                      <Users className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="font-semibold text-white">Client Growth</div>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-xs text-gray-400">
-                      <span>Monthly Goal</span>
-                      <span>84%</span>
-                    </div>
-                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                      <div className="h-full w-[84%] bg-[#ff4d4d]" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-[#1a1a1a] rounded-3xl p-6 border border-white/10 shadow-2xl transform -translate-y-4 transition-transform duration-500 hover:scale-105">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/10">
-                      <Shield className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="font-semibold text-white">Security Hub</div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[1, 2, 3].map((i) => (
-                      <div key={i} className="h-10 bg-white/5 rounded-lg border border-white/5" />
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-[#ff4d4d]/10 blur-[120px] -z-10 rounded-full" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ============ FAQ SECTION COMPONENT ============
-const FAQSection = () => {
-  const [openIndex, setOpenIndex] = useState(0)
-
-  const faqData = [
-    {
-      question: "What liquidity solutions does SetupFX24 provide?",
-      answer: "SetupFX24 offers access to deep, multi-asset liquidity with stable execution, competitive spreads, and scalable infrastructure suitable for both new and growing brokerage firms."
-    },
-    {
-      question: "How does SetupFX24 support new and existing brokerage firms?",
-      answer: "We deliver end-to-end white-label solutions including trading platforms, CRM, website development, risk management tools, and ongoing technical and operational support."
-    },
-    {
-      question: "What is DMA (Direct Market Access) in trading?",
-      answer: "DMA allows brokers and traders to place orders directly into the market without intermediaries, ensuring greater transparency, faster execution, and improved pricing control."
-    },
-    {
-      question: "Can I launch my brokerage without technical experience?",
-      answer: "Yes. SetupFX24 handles the complete technical setup, integrations, and backend configuration, allowing you to focus on client acquisition and business growth."
-    },
-    {
-      question: "Does SetupFX24 offer customization and branding?",
-      answer: "Absolutely. All platforms, websites, and mobile apps are fully customizable and branded to match your brokerage's identity and business objectives."
-    },
-    {
-      question: "What makes SetupFX24 different from other white-label providers?",
-      answer: "SetupFX24 combines fast deployment, enterprise-grade technology, transparent pricing, and expert support to help brokers launch faster and scale with confidence."
-    }
-  ]
-
-  return (
-    <section id="faq" className="bg-[#0A0A0B] py-16 sm:py-20 md:py-32 overflow-hidden">
-      <div className="mx-auto px-4 sm:px-6 max-w-[900px]">
-        <div className="text-center mb-10 sm:mb-16">
-          <h2 className="text-[24px] sm:text-[32px] md:text-[48px] font-bold text-white mb-4 sm:mb-6 tracking-tight">
-            Frequently Asked Questions About <span className="text-[#ff4d4d]">SetupFX24</span> White-Label Solutions
-          </h2>
-          <div className="h-1 w-[80px] sm:w-[100px] bg-[#ff4d4d] mx-auto rounded-full" />
-        </div>
-
-        <div className="space-y-3 sm:space-y-4">
-          {faqData.map((item, index) => (
-            <div key={index} className="group">
-              <button
-                onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                className={`w-full p-4 sm:p-6 md:p-8 rounded-[16px] sm:rounded-[24px] text-left transition-all duration-300 flex items-start justify-between gap-3 sm:gap-4 border ${
-                  openIndex === index 
-                    ? 'bg-white/5 border-white/10' 
-                    : 'bg-transparent border-white/5 hover:border-white/20 hover:bg-white/[0.02]'
-                }`}
-              >
-                <span className={`text-[14px] sm:text-[16px] md:text-[20px] font-semibold transition-colors duration-300 ${
-                  openIndex === index ? 'text-[#ff4d4d]' : 'text-white/90 group-hover:text-white'
-                }`}>
-                  {item.question}
-                </span>
-                <div className={`mt-1 p-1 rounded-full transition-all duration-300 ${
-                  openIndex === index ? 'bg-[#ff4d4d] text-white' : 'bg-white/5 text-white/50 group-hover:bg-white/10'
-                }`}>
-                  {openIndex === index ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                </div>
-              </button>
-
-              {openIndex === index && (
-                <div className="overflow-hidden px-4 sm:px-8 mt-3 sm:mt-4">
-                  <p className="text-gray-400 text-[13px] sm:text-[15px] md:text-[17px] leading-relaxed pb-4 sm:pb-6">
-                    {item.answer}
+                <div>
+                  <h4 className="text-white font-semibold text-sm">Our Mission</h4>
+                  <p className="text-zinc-400 text-sm mt-1">
+                    To empower businesses of all sizes with world-class software and marketing solutions that drive real growth.
                   </p>
                 </div>
-              )}
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0">
+                  <Eye className="w-5 h-5 text-blue-400" />
+                </div>
+                <div>
+                  <h4 className="text-white font-semibold text-sm">Our Vision</h4>
+                  <p className="text-zinc-400 text-sm mt-1">
+                    To become the go-to global partner for businesses seeking digital transformation and sustainable growth.
+                  </p>
+                </div>
+              </div>
             </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+            className="relative"
+          >
+            <div className="relative rounded-2xl overflow-hidden border border-zinc-800 bg-gradient-to-br from-zinc-900 to-zinc-950 p-8 md:p-12">
+              <div className="absolute inset-0 opacity-10">
+                <svg className="w-full h-full" viewBox="0 0 400 400">
+                  <circle cx="100" cy="100" r="3" fill="#3b82f6" />
+                  <circle cx="200" cy="80" r="3" fill="#3b82f6" />
+                  <circle cx="300" cy="120" r="3" fill="#3b82f6" />
+                  <circle cx="150" cy="200" r="3" fill="#3b82f6" />
+                  <circle cx="250" cy="180" r="3" fill="#3b82f6" />
+                  <circle cx="350" cy="250" r="3" fill="#3b82f6" />
+                  <circle cx="80" cy="300" r="3" fill="#3b82f6" />
+                  <circle cx="200" cy="320" r="3" fill="#3b82f6" />
+                  <circle cx="320" cy="350" r="3" fill="#3b82f6" />
+                  <line x1="100" y1="100" x2="200" y2="80" stroke="#3b82f6" strokeWidth="0.5" />
+                  <line x1="200" y1="80" x2="300" y2="120" stroke="#3b82f6" strokeWidth="0.5" />
+                  <line x1="100" y1="100" x2="150" y2="200" stroke="#3b82f6" strokeWidth="0.5" />
+                  <line x1="200" y1="80" x2="250" y2="180" stroke="#3b82f6" strokeWidth="0.5" />
+                  <line x1="300" y1="120" x2="350" y2="250" stroke="#3b82f6" strokeWidth="0.5" />
+                  <line x1="150" y1="200" x2="250" y2="180" stroke="#3b82f6" strokeWidth="0.5" />
+                  <line x1="150" y1="200" x2="80" y2="300" stroke="#3b82f6" strokeWidth="0.5" />
+                  <line x1="250" y1="180" x2="200" y2="320" stroke="#3b82f6" strokeWidth="0.5" />
+                  <line x1="350" y1="250" x2="320" y2="350" stroke="#3b82f6" strokeWidth="0.5" />
+                  <line x1="80" y1="300" x2="200" y2="320" stroke="#3b82f6" strokeWidth="0.5" />
+                  <line x1="200" y1="320" x2="320" y2="350" stroke="#3b82f6" strokeWidth="0.5" />
+                </svg>
+              </div>
+
+              <div className="relative z-10 text-center space-y-8">
+                <Globe className="w-16 h-16 text-blue-400/60 mx-auto" />
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="bg-zinc-800/50 rounded-xl p-5 border border-zinc-700/50">
+                    <div className="text-3xl font-bold text-white">250+</div>
+                    <div className="text-xs text-zinc-400 mt-1">Projects Delivered</div>
+                  </div>
+                  <div className="bg-zinc-800/50 rounded-xl p-5 border border-zinc-700/50">
+                    <div className="text-3xl font-bold text-white">50+</div>
+                    <div className="text-xs text-zinc-400 mt-1">Global Clients</div>
+                  </div>
+                  <div className="bg-zinc-800/50 rounded-xl p-5 border border-zinc-700/50">
+                    <div className="text-3xl font-bold text-white">98%</div>
+                    <div className="text-xs text-zinc-400 mt-1">Client Satisfaction</div>
+                  </div>
+                  <div className="bg-zinc-800/50 rounded-xl p-5 border border-zinc-700/50">
+                    <div className="text-3xl font-bold text-white">24/7</div>
+                    <div className="text-xs text-zinc-400 mt-1">Dedicated Support</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ============ WHY SETUPFX COMPONENT ============
+const differentiators = [
+  { icon: Code2, title: "Expert Development Team", benefit: "Senior engineers with deep expertise in React, Next.js, Flutter, Node.js, and cloud infrastructure." },
+  { icon: Zap, title: "Fast Delivery", benefit: "Agile methodology and proven processes mean your project goes live in weeks, not months." },
+  { icon: Users, title: "Dedicated Team", benefit: "A named project manager, designer, and development team assigned exclusively to your project." },
+  { icon: Globe, title: "Global Experience", benefit: "We've delivered projects across 15+ countries for startups, SMBs, and enterprise clients." },
+  { icon: HeadphonesIcon, title: "Ongoing Support", benefit: "Post-launch support, maintenance, and optimization to keep your product running at peak performance." },
+  { icon: ShieldCheck, title: "Quality Guaranteed", benefit: "Rigorous QA testing, code reviews, and security audits ensure enterprise-grade quality on every project." },
+]
+
+const WhySetupFX = () => {
+  return (
+    <section id="why" className="relative py-24 overflow-hidden bg-zinc-950">
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
+
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+          className="text-center mb-16"
+        >
+          <span className="text-xs tracking-[0.2em] uppercase text-blue-400 font-medium">Why Choose Us</span>
+          <h2 className="text-3xl md:text-5xl font-bold mt-4 tracking-tight text-white">
+            Why Businesses Trust SetupFX24
+          </h2>
+          <p className="mt-4 text-zinc-400 text-lg max-w-2xl mx-auto">
+            We combine technical excellence with strategic thinking to deliver solutions that truly make a difference.
+          </p>
+        </motion.div>
+
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          {differentiators.map((item) => (
+            <motion.div
+              key={item.title}
+              variants={itemVariants}
+              className="group flex items-start gap-4 p-6 rounded-xl border border-zinc-800 bg-zinc-900/40 hover:border-blue-500/30 hover:bg-zinc-900/70 transition-all duration-300"
+            >
+              <div className="w-11 h-11 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
+                <item.icon className="w-5 h-5 text-blue-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold text-sm">{item.title}</h3>
+                <p className="text-zinc-400 text-sm mt-1.5 leading-relaxed">{item.benefit}</p>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+// ============ HOW IT WORKS COMPONENT ============
+const steps = [
+  { icon: MessageSquare, step: "01", title: "Discovery & Strategy", desc: "We dive deep into your business goals, audience, and requirements to craft the perfect plan." },
+  { icon: Paintbrush, step: "02", title: "Design & Prototype", desc: "Our designers create stunning UI/UX mockups and interactive prototypes for your approval." },
+  { icon: Code2, step: "03", title: "Development", desc: "Our engineers build your solution using modern tech stacks with agile sprints and regular updates." },
+  { icon: TestTube, step: "04", title: "Testing & QA", desc: "Rigorous testing across devices, browsers, and scenarios to ensure flawless performance." },
+  { icon: Rocket, step: "05", title: "Launch & Growth", desc: "We deploy your project and provide ongoing support, optimization, and marketing to drive growth." },
+]
+
+const HowItWorks = () => {
+  return (
+    <section id="resources" className="relative py-24 overflow-hidden bg-zinc-950">
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
+
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+          className="text-center mb-16"
+        >
+          <span className="text-xs tracking-[0.2em] uppercase text-blue-400 font-medium">How It Works</span>
+          <h2 className="text-3xl md:text-5xl font-bold mt-4 tracking-tight text-white">
+            From Idea to Launch in 5 Steps
+          </h2>
+          <p className="mt-4 text-zinc-400 text-lg max-w-2xl mx-auto">
+            Our proven process ensures your project is delivered on time, on budget, and beyond expectations.
+          </p>
+        </motion.div>
+
+        <div className="relative max-w-4xl mx-auto">
+          <div className="hidden md:block absolute top-12 left-[calc(10%)] right-[calc(10%)] h-px bg-gradient-to-r from-blue-500/30 via-blue-500/50 to-blue-500/30" />
+
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-4">
+            {steps.map((item, index) => (
+              <motion.div
+                key={item.step}
+                initial={{ opacity: 0, y: 25 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="text-center relative"
+              >
+                <div className="relative mx-auto w-24 h-24 mb-5">
+                  <div className="absolute inset-0 rounded-full bg-blue-500/5 border border-blue-500/20" />
+                  <div className="absolute inset-3 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+                    <item.icon className="w-7 h-7 text-blue-400" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white shadow-lg shadow-blue-600/30">
+                    {item.step}
+                  </div>
+                </div>
+
+                <h4 className="text-white font-semibold text-sm mb-1.5">{item.title}</h4>
+                <p className="text-zinc-400 text-xs leading-relaxed">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ============ COMPETITION (CASE STUDIES) COMPONENT ============
+const caseStudies = [
+  {
+    icon: Globe,
+    category: "Web Application",
+    title: "E-Commerce Platform for Fashion Brand",
+    description: "Built a custom e-commerce platform with inventory management, payment processing, and analytics dashboard.",
+    results: [
+      { label: "Revenue Increase", value: "+240%" },
+      { label: "Page Load Time", value: "0.8s" },
+      { label: "Conversion Rate", value: "+85%" },
+    ],
+  },
+  {
+    icon: Smartphone,
+    category: "Mobile App",
+    title: "Fitness Tracking App with Social Features",
+    description: "Developed a cross-platform mobile app with workout tracking, social challenges, and real-time leaderboards.",
+    results: [
+      { label: "Downloads", value: "50K+" },
+      { label: "User Retention", value: "78%" },
+      { label: "App Rating", value: "4.8/5" },
+    ],
+  },
+  {
+    icon: TrendingUp,
+    category: "Digital Marketing",
+    title: "SaaS Lead Generation Campaign",
+    description: "Executed a full-funnel marketing strategy including SEO, paid ads, and content marketing for a B2B SaaS company.",
+    results: [
+      { label: "Organic Traffic", value: "+320%" },
+      { label: "Qualified Leads", value: "+180%" },
+      { label: "Cost Per Lead", value: "-45%" },
+    ],
+  },
+]
+
+const Competition = () => {
+  return (
+    <section className="relative py-24 overflow-hidden bg-zinc-950">
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
+
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+          className="text-center mb-16"
+        >
+          <span className="text-xs tracking-[0.2em] uppercase text-blue-400 font-medium">Case Studies</span>
+          <h2 className="text-3xl md:text-5xl font-bold mt-4 tracking-tight text-white">
+            Real Results, Real Impact
+          </h2>
+          <p className="mt-4 text-zinc-400 text-lg max-w-2xl mx-auto">
+            See how we've helped businesses across industries achieve their digital goals.
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {caseStudies.map((study, index) => (
+            <motion.div
+              key={study.title}
+              initial={{ opacity: 0, y: 25 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.12 }}
+              className="group rounded-xl border border-zinc-800 bg-zinc-900/50 overflow-hidden hover:border-blue-500/30 transition-all duration-300"
+            >
+              <div className="p-7 pb-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <study.icon className="w-4 h-4 text-blue-400" />
+                    <span className="text-xs text-blue-400 font-medium">{study.category}</span>
+                  </div>
+                  <ArrowUpRight className="w-4 h-4 text-zinc-600 group-hover:text-blue-400 transition-colors" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-3 leading-snug">{study.title}</h3>
+                <p className="text-zinc-400 text-sm leading-relaxed">{study.description}</p>
+              </div>
+
+              <div className="border-t border-zinc-800 bg-zinc-950/50 p-5">
+                <div className="grid grid-cols-3 gap-3">
+                  {study.results.map((result) => (
+                    <div key={result.label} className="text-center">
+                      <div className="text-lg font-bold text-white">{result.value}</div>
+                      <div className="text-[10px] text-zinc-500 mt-0.5">{result.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
           ))}
         </div>
+      </div>
+    </section>
+  )
+}
+
+// ============ PROP TRADING (PRICING) COMPONENT ============
+const plans = [
+  {
+    name: "Starter",
+    price: "$1,499",
+    period: "per project",
+    description: "Perfect for startups and small businesses getting started with their digital presence.",
+    icon: Zap,
+    features: [
+      "Responsive website (up to 5 pages)",
+      "Basic SEO setup",
+      "Mobile-friendly design",
+      "Contact form integration",
+      "1 month post-launch support",
+      "Social media profile setup",
+    ],
+    cta: "Get Started",
+    popular: false,
+  },
+  {
+    name: "Growth",
+    price: "$4,999",
+    period: "per project",
+    description: "Ideal for growing businesses that need custom applications and marketing strategies.",
+    icon: TrendingUp,
+    features: [
+      "Custom web application",
+      "Mobile app (iOS or Android)",
+      "Advanced SEO & content strategy",
+      "Google Ads & social media campaigns",
+      "CRM integration",
+      "3 months post-launch support",
+      "Monthly analytics reporting",
+      "Dedicated project manager",
+    ],
+    cta: "Choose Growth",
+    popular: true,
+  },
+  {
+    name: "Enterprise",
+    price: "Custom",
+    period: "tailored pricing",
+    description: "For enterprises and global brands requiring complex systems and full-scale digital transformation.",
+    icon: Crown,
+    features: [
+      "Enterprise-grade applications",
+      "Multi-platform development",
+      "Full-funnel marketing strategy",
+      "Business automation & workflows",
+      "Custom CRM & admin panels",
+      "24/7 dedicated support",
+      "SLA-backed uptime guarantee",
+      "Quarterly strategy reviews",
+      "Priority feature development",
+    ],
+    cta: "Contact Sales",
+    popular: false,
+  },
+]
+
+const PropTrading = () => {
+  return (
+    <section id="pricing" className="relative py-24 overflow-hidden bg-zinc-950">
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
+      <div className="absolute inset-0 opacity-[0.03]"
+        style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)", backgroundSize: "40px 40px" }}
+      />
+
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+          className="text-center mb-16"
+        >
+          <span className="text-xs tracking-[0.2em] uppercase text-blue-400 font-medium">Pricing</span>
+          <h2 className="text-3xl md:text-5xl font-bold mt-4 tracking-tight text-white">
+            Transparent Pricing, Real Value
+          </h2>
+          <p className="mt-4 text-zinc-400 text-lg max-w-2xl mx-auto">
+            Choose a package that fits your business needs. All plans include dedicated support and quality assurance.
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+          {plans.map((plan, index) => (
+            <motion.div
+              key={plan.name}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.12 }}
+              className={`relative rounded-2xl p-8 transition-all duration-300 ${
+                plan.popular
+                  ? "border-2 border-blue-500/50 bg-zinc-900/80 shadow-2xl shadow-blue-500/10 scale-[1.02]"
+                  : "border border-zinc-800 bg-zinc-900/50 hover:border-zinc-700"
+              }`}
+            >
+              {plan.popular && (
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-semibold px-4 py-1 rounded-full shadow-lg shadow-blue-600/30">
+                  Most Popular
+                </div>
+              )}
+
+              <div className="flex items-center gap-3 mb-4">
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                  plan.popular ? "bg-blue-500/20 border border-blue-500/30" : "bg-zinc-800 border border-zinc-700"
+                }`}>
+                  <plan.icon className={`w-5 h-5 ${plan.popular ? "text-blue-400" : "text-zinc-400"}`} />
+                </div>
+                <h3 className="text-xl font-bold text-white">{plan.name}</h3>
+              </div>
+
+              <div className="mb-4">
+                <span className="text-4xl font-bold text-white">{plan.price}</span>
+                <span className="text-zinc-500 text-sm ml-2">/ {plan.period}</span>
+              </div>
+
+              <p className="text-zinc-400 text-sm leading-relaxed mb-6">{plan.description}</p>
+
+              <a
+                href="#contact"
+                className={`block text-center font-semibold py-3 rounded-lg transition-all duration-200 text-sm mb-8 ${
+                  plan.popular
+                    ? "bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/20"
+                    : "border border-zinc-700 hover:border-zinc-500 text-white hover:bg-white/5"
+                }`}
+              >
+                {plan.cta}
+              </a>
+
+              <ul className="space-y-3">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-3">
+                    <Check className={`w-4 h-4 flex-shrink-0 mt-0.5 ${plan.popular ? "text-blue-400" : "text-zinc-500"}`} />
+                    <span className="text-zinc-300 text-sm">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          ))}
+        </div>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+          className="text-center text-zinc-500 text-sm mt-12"
+        >
+          Need a custom solution? <a href="#contact" className="text-blue-400 hover:text-blue-300 font-medium">Contact us</a> for a tailored proposal.
+        </motion.p>
+      </div>
+    </section>
+  )
+}
+
+// ============ TESTIMONIAL COMPONENT ============
+const testimonials = [
+  {
+    quote: "SetupFX24 built our entire e-commerce platform from scratch. The team delivered ahead of schedule, and our online revenue has grown 3x since launch. Their technical expertise and communication are outstanding.",
+    name: "Sarah Mitchell",
+    role: "CEO, Fashion Forward",
+    industry: "E-Commerce — United States",
+  },
+  {
+    quote: "We hired SetupFX24 for SEO and paid advertising. Within 6 months, our organic traffic increased by 280% and our cost per acquisition dropped by 40%. They truly understand digital growth.",
+    name: "James Chen",
+    role: "Marketing Director",
+    industry: "SaaS Company — Singapore",
+  },
+  {
+    quote: "The mobile app they developed for us has a 4.9-star rating with over 50K downloads. SetupFX24 didn't just build an app — they built a product that our users love. Highly recommended.",
+    name: "Priya Sharma",
+    role: "Founder & CTO",
+    industry: "Health & Fitness — India",
+  },
+]
+
+const Testimonial = () => {
+  return (
+    <section className="relative py-24 overflow-hidden bg-zinc-950">
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
+
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+          className="text-center mb-16"
+        >
+          <span className="text-xs tracking-[0.2em] uppercase text-blue-400 font-medium">Testimonials</span>
+          <h2 className="text-3xl md:text-5xl font-bold mt-4 tracking-tight text-white">
+            What Our Clients Say
+          </h2>
+          <p className="mt-4 text-zinc-400 text-lg max-w-2xl mx-auto">
+            Don't just take our word for it — hear from the businesses we've helped grow.
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {testimonials.map((item, index) => (
+            <motion.div
+              key={item.name}
+              initial={{ opacity: 0, y: 25 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.12 }}
+              className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-8"
+            >
+              <Quote className="w-8 h-8 text-blue-500/20 mb-4" />
+
+              <div className="flex items-center gap-1 mb-5">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                ))}
+              </div>
+
+              <blockquote className="text-zinc-300 text-sm leading-relaxed mb-6">
+                "{item.quote}"
+              </blockquote>
+
+              <div className="pt-5 border-t border-zinc-800">
+                <div className="text-white font-semibold text-sm">{item.name}</div>
+                <div className="text-zinc-500 text-xs mt-0.5">{item.role}</div>
+                <div className="text-zinc-600 text-xs mt-0.5">{item.industry}</div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ============ FINAL CTA COMPONENT ============
+const FinalCTA = () => {
+  return (
+    <section className="relative py-24 overflow-hidden bg-zinc-950">
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
+
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+          className="relative rounded-2xl overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-blue-900/20 to-zinc-900" />
+          <div className="absolute inset-0 border border-blue-500/20 rounded-2xl" />
+          <div className="absolute top-0 right-0 w-96 h-96 opacity-10 blur-3xl"
+            style={{ background: "radial-gradient(circle, rgba(59,130,246,0.6) 0%, transparent 70%)" }}
+          />
+
+          <div className="relative z-10 px-8 py-16 md:px-16 md:py-20 text-center">
+            <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white leading-tight">
+              Ready to Build, Scale &<br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">
+                Grow Your Business?
+              </span>
+            </h2>
+            <p className="mt-5 text-zinc-400 text-lg max-w-xl mx-auto">
+              Get a free consultation and custom proposal tailored to your business needs.
+              Our team will walk you through every solution and answer all your questions.
+            </p>
+            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <a href="#contact" className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-10 py-4 rounded-lg transition-all duration-200 shadow-lg shadow-blue-600/25 text-sm">
+                Get Free Consultation
+              </a>
+              <a href="#pricing" className="border border-zinc-600 hover:border-zinc-400 text-white font-semibold px-10 py-4 rounded-lg transition-all duration-200 text-sm hover:bg-white/5">
+                View Pricing
+              </a>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </section>
   )
@@ -818,112 +1515,76 @@ const FAQSection = () => {
 // ============ FOOTER COMPONENT ============
 const Footer = () => {
   return (
-    <footer className="w-full bg-black text-white pt-12 sm:pt-16 md:pt-20 pb-8 sm:pb-12 flex flex-col items-center">
-      <div className="max-w-[1200px] px-4 sm:px-6 w-full">
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-12 gap-8 sm:gap-10 lg:gap-8 mb-10 sm:mb-16">
-          <div className="col-span-2 sm:col-span-2 lg:col-span-4 flex flex-col gap-6 sm:gap-8">
-            <div className="flex flex-col gap-4 sm:gap-6">
-              <a href="/" className="flex items-center" aria-label="SetupFX24 Home">
-                <img
-                  src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/setupFX24-logo-1766736768413.png?width=8000&height=8000&resize=contain"
-                  alt="SetupFX24 Logo"
-                  className="h-8 sm:h-10 w-auto object-contain"
-                />
-              </a>
-              <p className="text-[#a0a0a0] text-xs sm:text-sm leading-relaxed max-w-[320px]">
-                SetupFX24 is a technology and service provider, empowering Forex brokers with white-label solutions.
+    <footer id="contact" className="relative pt-20 pb-8 overflow-hidden border-t border-zinc-800/50 bg-zinc-950">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
+
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="flex flex-col lg:flex-row items-start gap-14 mb-16">
+          <div className="max-w-sm">
+            <div className="mb-5">
+              <img src={setupfxLogo} alt="SetupFX24" className="h-9 w-auto" />
+            </div>
+            <p className="text-white font-semibold text-sm mb-2">SetupFX Softtech (OPC) Private Limited</p>
+            <div className="flex items-start gap-2.5 mb-5">
+              <MapPin className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+              <p className="text-zinc-400 text-xs leading-relaxed">
+                Office 9364hn 3 Fitzroy Place, Area 1/1, Sauchiehall Street, Glasgow City Centre, United Kingdom, G3 7RH
               </p>
             </div>
-
-            <div className="flex flex-col gap-1 text-[#a0a0a0] text-xs sm:text-sm">
-              <p className="font-bold text-white mb-1">SetupFX24</p>
-              <p>4th good floor 4084, currency tower, Vishal Nagar, Raipur, Chhattisgarh</p>
-            </div>
-
-            <div className="flex gap-4 sm:gap-5">
-              <a 
-                href="https://api.whatsapp.com/send/?phone=19082280305&text&type=phone_number&app_absent=0" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-[#a0a0a0] hover:text-white transition-colors"
-                aria-label="WhatsApp"
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                </svg>
-              </a>
-              <a 
-                href="https://www.facebook.com/Setupfx24" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-[#a0a0a0] hover:text-white transition-colors"
-                aria-label="Facebook"
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                </svg>
-              </a>
-              <a 
-                href="https://www.instagram.com/setup.fx24/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-[#a0a0a0] hover:text-white transition-colors"
-                aria-label="Instagram"
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                </svg>
-              </a>
-              <a 
-                href="https://tr.ee/FIAU0cD5FI" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-[#a0a0a0] hover:text-white transition-colors"
-                aria-label="Google"
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-              </a>
-            </div>
+            <p className="text-zinc-500 text-xs leading-relaxed">
+              Global software development and digital marketing company powering brokerages and businesses worldwide.
+            </p>
           </div>
 
-          <div className="col-span-1 lg:col-span-3 flex flex-col gap-4 sm:gap-6">
-            <h4 className="text-white font-bold text-sm sm:text-base">Quick Links</h4>
-            <ul className="flex flex-col gap-2 sm:gap-4">
-              {['White Label', 'Trading Platform', 'CRM', 'Web Development', 'Pricing', 'Contact'].map((item) => (
-                <li key={item}>
-                  <a href="#" className="text-[#a0a0a0] hover:text-white transition-colors text-xs sm:text-sm">
-                    {item}
-                  </a>
-                </li>
-              ))}
+          <div className="flex-shrink-0">
+            <h4 className="text-white font-semibold text-sm mb-5">Get in Touch</h4>
+            <ul className="space-y-4">
+              <li>
+                <a href="mailto:setupfx24@gmail.com" className="flex items-center gap-3 text-zinc-400 text-sm hover:text-white transition-colors group">
+                  <div className="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
+                    <Mail className="w-4 h-4 text-blue-400" />
+                  </div>
+                  setupfx24@gmail.com
+                </a>
+              </li>
+              <li>
+                <a href="https://wa.me/19082280305" className="flex items-center gap-3 text-zinc-400 text-sm hover:text-white transition-colors group">
+                  <div className="w-9 h-9 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center group-hover:bg-green-500/20 transition-colors">
+                    <MessageCircle className="w-4 h-4 text-green-400" />
+                  </div>
+                  WhatsApp: +1 (908) 228-0305
+                </a>
+              </li>
             </ul>
           </div>
+        </div>
 
-          <div className="col-span-1 lg:col-span-3 flex flex-col gap-4 sm:gap-6">
-            <h4 className="text-white font-bold text-sm sm:text-base">Resources</h4>
-            <ul className="flex flex-col gap-2 sm:gap-4">
-              {['Blog', 'Documentation', 'Support', 'FAQ'].map((item) => (
-                <li key={item}>
-                  <a href="#" className="text-[#a0a0a0] hover:text-white transition-colors text-xs sm:text-sm">
-                    {item}
-                  </a>
-                </li>
-              ))}
-            </ul>
+        <div className="border-t border-zinc-800/50 pt-8 mb-8">
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+            {[
+              { label: "Solutions", href: "/solutions/white-label" },
+              { label: "Liquidity", href: "/liquidity" },
+              { label: "Pricing", href: "/pricing" },
+              { label: "Case Studies", href: "/resources/case-studies" },
+              { label: "Blog", href: "/resources/blog" },
+              { label: "FAQs", href: "/resources/faqs" },
+              { label: "Contact", href: "/contact" },
+            ].map((link) => (
+              <a key={link.label} href={link.href} className="text-zinc-500 hover:text-white text-sm transition-colors">
+                {link.label}
+              </a>
+            ))}
           </div>
+        </div>
 
-          <div className="col-span-2 sm:col-span-1 lg:col-span-2 flex flex-col gap-4 sm:gap-6">
-            <h4 className="text-white font-bold text-sm sm:text-base">Legal</h4>
-            <ul className="flex flex-col gap-2 sm:gap-4">
-              <li><a href="/privacy-policy" className="text-[#a0a0a0] hover:text-white transition-colors text-xs sm:text-sm">Privacy Policy</a></li>
-              <li><a href="/terms-of-service" className="text-[#a0a0a0] hover:text-white transition-colors text-xs sm:text-sm">Terms & Conditions</a></li>
-              <li><a href="/account-deletion" className="text-[#a0a0a0] hover:text-white transition-colors text-xs sm:text-sm">Account Deletion</a></li>
-            </ul>
+        <div className="border-t border-zinc-800/50 pt-6 flex flex-col md:flex-row items-center justify-between gap-3">
+          <p className="text-zinc-600 text-xs">
+            © {new Date().getFullYear()} SetupFX24. All rights reserved.
+          </p>
+          <div className="flex items-center gap-6">
+            <a href="/privacy-policy" className="text-zinc-600 hover:text-zinc-400 text-xs transition-colors">Privacy</a>
+            <a href="/terms-of-service" className="text-zinc-600 hover:text-zinc-400 text-xs transition-colors">Terms</a>
+            <a href="/" className="text-zinc-600 hover:text-zinc-400 text-xs transition-colors">Cookies</a>
           </div>
         </div>
       </div>
@@ -934,16 +1595,21 @@ const Footer = () => {
 // ============ MAIN LANDING PAGE COMPONENT ============
 const LandingPage = () => {
   return (
-    <main className="relative min-h-screen bg-black text-white">
+    <main className="relative min-h-screen bg-zinc-950 text-white">
       <Navbar />
       <Hero />
-      <DashboardPreview />
-      <PlatformProcess />
-      <FeaturedModules />
-      <KeyFeatures />
-      <Pricing />
-      <CrmSolutions />
-      <FAQSection />
+      <TrustStrip />
+      <SolutionOverview />
+      <CoreProducts />
+      <BackOffice />
+      <IBPartner />
+      <AboutSection />
+      <WhySetupFX />
+      <HowItWorks />
+      <Competition />
+      <PropTrading />
+      <Testimonial />
+      <FinalCTA />
       <Footer />
     </main>
   )

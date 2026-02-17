@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { API_URL } from '../config/api'
+import logoImage from '../assets/setupfx24.png'
 // import BonusManagement from './admin/BonusManagement.jsx'
 
 // Temporarily remove import to test
@@ -113,9 +114,7 @@ console.log('Menu items:', menuItems)
       >
         {/* Logo */}
         <div className="p-4 flex items-center justify-center gap-2">
-          <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
-            <span className="text-white font-bold text-sm">A</span>
-          </div>
+          <img src={logoImage} alt="SetupFX" className="h-8 w-auto object-contain" />
           {sidebarExpanded && <span className="text-white font-semibold">Admin</span>}
         </div>
 
