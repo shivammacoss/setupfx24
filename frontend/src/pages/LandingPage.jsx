@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import setupfxLogo from '../assets/setupfx24.png'
 import setupfxVideo from '../assets/setupfxvideo.mp4'
 import terminalImg from '../assets/terminal.png'
+import chartImg from '../assets/chart.png'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Menu, X, ChevronDown, Code2, Globe, Smartphone, Database, Palette,
@@ -197,8 +198,11 @@ const Navbar = () => {
           </div>
 
           <div className="hidden xl:flex items-center gap-3 flex-shrink-0">
-            <a href="/user/signup" className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition-all duration-200 shadow-lg shadow-blue-600/20 hover:shadow-blue-500/30">
-              Get Free Consultation
+            <a href="/user/login" className="border border-zinc-600 hover:border-zinc-400 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition-all duration-200 hover:bg-white/5">
+              Login
+            </a>
+            <a href="/admin" className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition-all duration-200 shadow-lg shadow-blue-600/20 hover:shadow-blue-500/30">
+              Sign Up
             </a>
           </div>
 
@@ -281,9 +285,12 @@ const Navbar = () => {
                 Contact
               </a>
 
-              <div className="pt-4 border-t border-zinc-800">
-                <a href="/user/signup" className="block bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-6 py-3.5 rounded-lg w-full transition-all shadow-lg shadow-blue-600/20 text-center">
-                  Get Free Consultation
+              <div className="pt-4 border-t border-zinc-800 flex flex-col gap-2">
+                <a href="/user/login" className="block border border-zinc-600 hover:border-zinc-400 text-white text-sm font-semibold px-6 py-3.5 rounded-lg w-full transition-all hover:bg-white/5 text-center">
+                  Login
+                </a>
+                <a href="/admin" className="block bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-6 py-3.5 rounded-lg w-full transition-all shadow-lg shadow-blue-600/20 text-center">
+                  Sign Up
                 </a>
               </div>
             </div>
@@ -796,7 +803,7 @@ const BackOffice = () => {
             transition={{ duration: 0.7 }}
           >
             <img
-              src="/chart.png"
+              src={chartImg}
               alt="Solutions Dashboard"
               className="w-full h-auto rounded-xl border border-zinc-800 shadow-2xl"
             />
