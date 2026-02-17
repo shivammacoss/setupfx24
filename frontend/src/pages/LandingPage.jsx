@@ -41,10 +41,10 @@ const solutionsItems = [
 ]
 
 const liquidityItems = [
-  { icon: Plug, label: "Client Liquidity Integration", href: "/liquidity#client-integration", desc: "Connect your existing liquidity provider" },
-  { icon: Droplets, label: "SetupFX Liquidity Provider", href: "/liquidity#setupfx-liquidity", desc: "Multi-asset deep liquidity from SetupFX" },
-  { icon: Shield, label: "A-Book & B-Book Support", href: "/liquidity#ab-book", desc: "Smart order routing & risk management" },
-  { icon: Workflow, label: "Platform Compatibility", href: "/liquidity#compatibility", desc: "Works with all trading platforms" },
+  { icon: Plug, label: "Client Liquidity Integration", href: "/liquidity", desc: "Connect your existing liquidity provider" },
+  { icon: Droplets, label: "SetupFX Liquidity Provider", href: "/liquidity", desc: "Multi-asset deep liquidity from SetupFX" },
+  { icon: Shield, label: "A-Book & B-Book Support", href: "/liquidity", desc: "Smart order routing & risk management" },
+  { icon: Workflow, label: "Platform Compatibility", href: "/liquidity", desc: "Works with all trading platforms" },
 ]
 
 const resourcesItems = [
@@ -56,7 +56,7 @@ const resourcesItems = [
 const dropdowns = [
   { key: "services", label: "Services", items: servicesItems, footerLink: { label: "View all services", href: "/services/software-development" } },
   { key: "marketing", label: "Digital Marketing", items: marketingItems, footerLink: { label: "View all marketing services", href: "/marketing/strategy" } },
-  { key: "solutions", label: "Solutions", items: solutionsItems, footerLink: { label: "View all solutions", href: "/solutions/custom-software" } },
+  { key: "solutions", label: "Solutions", items: solutionsItems, footerLink: { label: "View all solutions", href: "/solutions/white-label" } },
   { key: "liquidity", label: "Liquidity", items: liquidityItems, footerLink: { label: "View liquidity solutions", href: "/liquidity" } },
   { key: "resources", label: "Resources", items: resourcesItems },
 ]

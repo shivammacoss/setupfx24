@@ -47,6 +47,28 @@ import AdminProfile from './pages/AdminProfile'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsOfService from './pages/TermsOfService'
 import AccountDeletion from './pages/AccountDeletion'
+import SEOPage from './pages/ceo..jsx'
+import PaidAdvertisingPage from './pages/paid-adversting.jsx'
+import ContentMarketingPage from './pages/ContentMarkteing.jsx'
+import SocialMediaMarketingPage from './pages/social-media.jsx'
+import WebApplicationDevelopmentPage from './pages/modern-application.jsx'
+import MobileAppDevelopmentPage from './pages/mobile-application.jsx'
+import CRMBusinessSystemsPage from './pages/crmpage.jsx'
+import UIUXDesignPage from './pages/ui-ux.jsx'
+import MarketingStrategyPage from './pages/markingstratgeypage.jsx'
+import WhiteLabelPage from './pages/whitelabelsolution.jsx'
+import IBManagementPage from './pages/Ibmanagement.jsx'
+import PropTradingPage from './pages/prop-trading.jsx'
+import SoftwareDevelopmentPage from './pages/software-development.jsx'
+import CopyTradingPage from './pages/copy-trading-page.jsx'
+import AdvanceOrderExchangePage from './pages/advance-order-exchange.jsx'
+import GreyLabelPage from './pages/grey-label.jsx'
+import LiquidityPage from './pages/liquidity-page.jsx'
+import BlogPage from './pages/blog-page.jsx'
+import CaseStudiesPage from './pages/case-studies-page.jsx'
+import FAQsPage from './pages/faqs-page.jsx'
+import PricingPage from './pages/pricing-page.jsx'
+import ContactPage from './pages/contact-page.jsx'
 
 function App() {
   return (
@@ -101,6 +123,28 @@ function App() {
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/account-deletion" element={<AccountDeletion />} />
         <Route path="/:slug/login" element={<BrandedLogin />} />
+        <Route path="/marketing/seo" element={<SEOPage />} />
+        <Route path="/marketing/paid-advertising" element={<PaidAdvertisingPage />} />
+        <Route path="/marketing/content-marketing" element={<ContentMarketingPage />} />
+        <Route path="/marketing/social-media" element={<SocialMediaMarketingPage />} />
+        <Route path="/services/web-application-development" element={<WebApplicationDevelopmentPage />} />
+        <Route path="/services/mobile-app-development" element={<MobileAppDevelopmentPage />} />
+        <Route path="/services/crm-business-systems" element={<CRMBusinessSystemsPage />} />
+        <Route path="/services/ui-ux-design" element={<UIUXDesignPage />} />
+        <Route path="/marketing/strategy" element={<MarketingStrategyPage />} />
+        <Route path="/solutions/white-label" element={<WhiteLabelPage />} />
+        <Route path="/solutions/ib-management" element={<IBManagementPage />} />
+        <Route path="/solutions/prop-trading" element={<PropTradingPage />} />
+        <Route path="/services/software-development" element={<SoftwareDevelopmentPage />} />
+        <Route path="/solutions/copy-trading" element={<CopyTradingPage />} />
+        <Route path="/solutions/advance-order-exchange" element={<AdvanceOrderExchangePage />} />
+        <Route path="/solutions/grey-label" element={<GreyLabelPage />} />
+        <Route path="/liquidity" element={<LiquidityPage />} />
+        <Route path="/resources/blog" element={<BlogPage />} />
+        <Route path="/resources/case-studies" element={<CaseStudiesPage />} />
+        <Route path="/resources/faqs" element={<FAQsPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route path="/:slug/signup" element={<BrandedSignup />} />
       </Routes>
     </Router>
