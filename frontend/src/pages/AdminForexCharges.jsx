@@ -385,6 +385,8 @@ const AdminForexCharges = () => {
                   <option value="Forex">Forex</option>
                   <option value="Metals">Metals</option>
                   <option value="Crypto">Crypto</option>
+                  <option value="Energy">Energy</option>
+                  <option value="Stocks">Stocks</option>
                   <option value="Indices">Indices</option>
                 </select>
               </div>
@@ -427,6 +429,24 @@ const AdminForexCharges = () => {
                       <option value="US30">US30 (Dow Jones)</option>
                       <option value="US500">US500 (S&P 500)</option>
                       <option value="NAS100">NAS100 (Nasdaq)</option>
+                    </optgroup>
+                  )}
+                  {(!form.segment || form.segment === 'Energy') && (
+                    <optgroup label="Energy">
+                      <option value="USOIL">USOIL (US Oil)</option>
+                      <option value="UKOIL">UKOIL (UK Oil)</option>
+                      <option value="NGAS">NGAS (Natural Gas)</option>
+                    </optgroup>
+                  )}
+                  {(!form.segment || form.segment === 'Stocks') && (
+                    <optgroup label="Stocks">
+                      <option value="AAPL">AAPL (Apple)</option>
+                      <option value="MSFT">MSFT (Microsoft)</option>
+                      <option value="GOOGL">GOOGL (Google)</option>
+                      <option value="AMZN">AMZN (Amazon)</option>
+                      <option value="TSLA">TSLA (Tesla)</option>
+                      <option value="NVDA">NVDA (Nvidia)</option>
+                      <option value="META">META (Meta)</option>
                     </optgroup>
                   )}
                 </select>

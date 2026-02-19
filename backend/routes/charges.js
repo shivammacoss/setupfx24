@@ -37,7 +37,9 @@ router.get('/spreads', async (req, res) => {
           'Forex': ['EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'NZDUSD', 'USDCAD', 'EURGBP', 'EURJPY', 'GBPJPY'],
           'Metals': ['XAUUSD', 'XAGUSD'],
           'Crypto': ['BTCUSD', 'ETHUSD', 'LTCUSD', 'XRPUSD', 'BNBUSD', 'SOLUSD', 'ADAUSD', 'DOGEUSD', 'DOTUSD', 'MATICUSD', 'AVAXUSD', 'LINKUSD'],
-          'Indices': ['US30', 'US500', 'NAS100']
+          'Indices': ['US30', 'US500', 'NAS100'],
+          'Energy': ['USOIL', 'UKOIL', 'NGAS'],
+          'Stocks': ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'JPM', 'V', 'JNJ']
         }
         const symbols = segmentSymbols[charge.segment] || []
         for (const symbol of symbols) {
